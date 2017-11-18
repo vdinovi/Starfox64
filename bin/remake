@@ -1,0 +1,8 @@
+#!/bin/bash
+PROJECT_ROOT="~/471/final"
+
+cd PROJECT_ROOT
+rm -rf build
+mkdir build
+cd build
+cmake ..

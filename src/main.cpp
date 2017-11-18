@@ -2,6 +2,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <vector>
+#include <map>
 #include <cstdlib>
 #include "GLSL.h"
 #include "Program.h"
@@ -24,6 +25,12 @@ struct vao_t {
 	unsigned vbo_list[3]; // never really gonna have more than 3 vbo
 };
 
+struct material_t {
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	GLfloat shine;
+};
 
 class Application : public EventCallbacks
 {
@@ -31,21 +38,10 @@ class Application : public EventCallbacks
 public:
 
 	WindowManager * windowManager = nullptr;
-    // Programs
-	std::unordered_map<std::string, std::shared_ptr<Program>> programs;
-	/*
-	std::shared_ptr<Program> normalProg;
-	std::shared_ptr<Program> matProg;
-	std::shared_ptr<Program> textureProg;
-	std::shared_ptr<Program> mirrorProg;
-	*/
-
-
-    // Shapes
-	std::unordered_map<std::string, std::shared_ptr<Shape>> programs;
-	/*
-	std::shared_ptr<Shape> sphereShape;
-	*/
+	std::map<std::string, std::shared_ptr<Program>> programs;
+	std::map<std::string, std::shared_ptr<Shape>> shapes;
+	std::map<std::string, GLuint> textures;
+	std::map<std::string, material_t> materials;
 
 	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
@@ -75,47 +71,119 @@ public:
 	}
 
 
-	void initGeom(const std::string& resourceDirectory)
+	void initGeom(const std::string& resourceDir)
 	{
-
+		shapes["sphere"] = std::make_shared<Shape>();
+		shapes["sphere"]->loadMesh(resourceDir + "/sphere.obj");
+		shapes["sphere"]->resize();
+		shapes["sphere"]->init();
 	}
 
-	void initTex(const std::string& resourceDirectory)
+	void initTex(const std::string& resourceDir)
 	{
+		textures["cat"] = 1;
+		glGenTextures(1, &textures["cat"]);
+		glBindTexture(GL_TEXTURE_2D, textures["cat"]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		std::string path = resourceDir + "/cat.jpg";
+		int width, height, channels;
+		unsigned char * data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+		if (data) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			stbi_image_free(data);
+		}
+		else {
+			std::cout << "Error loading texture\n";
+		}
 	}
 
-	void initProg(const std::string& resourceDirectory)
+	void initProg(const std::string& resourceDir)
 	{
+		programs["normal"] = std::make_shared<Program>();
+		programs["normal"]->setVerbose(true);
+		programs["normal"]->setShaderNames(resourceDir + "/vert_shader.glsl",
+    		                       		   resourceDir + "/normal_frag_shader.glsl");
+		programs["normal"]->init();
+		programs["normal"]->addUniform("P");
+		programs["normal"]->addUniform("V");
+		programs["normal"]->addUniform("M");
+		programs["normal"]->addAttribute("vertPos");
+		programs["normal"]->addAttribute("vertNor");
+
+		programs["material"] = std::make_shared<Program>();
+		programs["material"]->setVerbose(true);
+		programs["material"]->setShaderNames(resourceDir + "/phong_vert_shader.glsl",
+    										 resourceDir + "/phong_frag_shader.glsl");
+		programs["material"]->init();
+		programs["material"]->addUniform("P");
+		programs["material"]->addUniform("V");
+		programs["material"]->addUniform("M");
+		programs["material"]->addUniform("lightDir");
+		programs["material"]->addUniform("MatAmb");
+		programs["material"]->addUniform("MatDif");
+		programs["material"]->addUniform("MatSpec");
+		programs["material"]->addUniform("shine");
+		programs["material"]->addAttribute("vertPos");
+		programs["material"]->addAttribute("vertNor");
+
+		programs["texture"] = std::make_shared<Program>();
+		programs["texture"]->setVerbose(true);
+		programs["texture"]->setShaderNames(resourceDir + "/texture_vert_shader.glsl",
+    										resourceDir + "/texture_frag_shader.glsl");
+		programs["texture"]->init();
+		programs["texture"]->addUniform("uTexture");
+		programs["texture"]->addUniform("P");
+		programs["texture"]->addUniform("V");
+		programs["texture"]->addUniform("M");
+		programs["texture"]->addAttribute("vertPos");
+		programs["texture"]->addAttribute("vertNor");
+		programs["texture"]->addAttribute("vertTexCoord");
+
+		programs["gblur"] = std::make_shared<Program>();
+		programs["gblur"]->setVerbose(true);
+		programs["gblur"]->setShaderNames(resourceDir + "/gblur_vert_shader.glsl",
+    							  		  resourceDir + "/gblur_frag_shader.glsl");
+		programs["gblur"]->init();
+		programs["gblur"]->addUniform("uTexture");
+		programs["gblur"]->addUniform("P");
+		programs["gblur"]->addUniform("V");
+		programs["gblur"]->addUniform("M");
+		programs["gblur"]->addAttribute("vertPos");
+		programs["gblur"]->addAttribute("vertNor");
+		programs["gblur"]->addAttribute("vertTexCoord");
 	}
 
-    void SetMaterial(int i, std::shared_ptr<Program> prog)
+    void initMat()
 	{
-        switch (i) {
-        case 0: // shiny blue plastic
-        	glUniform3f(prog->getUniform("MatAmb"), 0.02, 0.04, 0.2);
-        	glUniform3f(prog->getUniform("MatDif"), 0.0, 0.16, 0.9);
-            glUniform3f(prog->getUniform("MatSpec"), 0.14, 0.2, 0.8);
-            glUniform1f(prog->getUniform("shine"), 120.0);
-            break;
-        case 1: // flat grey
-            glUniform3f(prog->getUniform("MatAmb"), 0.13, 0.13, 0.14);
-            glUniform3f(prog->getUniform("MatDif"), 0.3, 0.3, 0.4);
-            glUniform3f(prog->getUniform("MatSpec"), 0.3, 0.3, 0.4);
-            glUniform1f(prog->getUniform("shine"), 4.0);
-            break;
-        case 2: // brass
-            glUniform3f(prog->getUniform("MatAmb"), 0.3294, 0.2235, 0.02745);
-            glUniform3f(prog->getUniform("MatDif"), 0.7804, 0.5686, 0.11373);
-            glUniform3f(prog->getUniform("MatSpec"), 0.9922, 0.941176, 0.80784);
-            glUniform1f(prog->getUniform("shine"), 27.9);
-            break;
-        case 3: // put in random values and got hot pink? I'm okay with that.
-            glUniform3f(prog->getUniform("MatAmb"), 0.6231, 0.1111, 0.9130);
-            glUniform3f(prog->getUniform("MatDif"), 0.7777, 0.1084, 0.2323);
-            glUniform3f(prog->getUniform("MatSpec"), 0.7304, 0.9049, 0.1234);
-            glUniform1f(prog->getUniform("shine"), 18.9);
-            break;
-        }
+		materials["shiny_blue_plastic"] = {
+        	glm::vec3(0.02, 0.04, 0.2),
+        	glm::vec3(0.0, 0.16, 0.9),
+            glm::vec3(0.14, 0.2, 0.8),
+            120.0
+		};
+		materials["flat_grey"] = {
+        	glm::vec3(0.13, 0.13, 0.14),
+        	glm::vec3(0.3, 0.3, 0.4),
+            glm::vec3(0.3, 0.3, 0.4),
+            4.0
+		};
+		materials["brass"] = {
+        	glm::vec3(0.3294, 0.2235, 0.02745),
+        	glm::vec3(0.7804, 0.5686, 0.11373),
+            glm::vec3(0.9922, 0.941176, 0.80784),
+            27.9
+		};
+		materials["pink"] = {
+        	glm::vec3(0.6231, 0.1111, 0.9130),
+        	glm::vec3(0.7777, 0.1084, 0.2323),
+            glm::vec3(0.7304, 0.9049, 0.1234),
+            15.0
+		};
     }
 
 	void render()
@@ -129,7 +197,7 @@ public:
 
 		auto P = std::make_shared<MatrixStack>();
 		auto M = std::make_shared<MatrixStack>();
-		glm::mat4 V = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
+		//glm::mat4 V = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 
 		P->pushMatrix();
 		if (width > height) {
@@ -148,11 +216,9 @@ public:
 
 int main(int argc, char **argv)
 {
-	std::string resourceDir = "../resources";
-	if (argc >= 2)
-	{
-		resourceDir = argv[1];
-	}
+	std::string textureDir = "../textures";
+	std::string meshDir = "../meshes";
+	std::string shaderDir = "../shaders";
 
 	Application *application = new Application();
 
@@ -161,9 +227,10 @@ int main(int argc, char **argv)
 	windowManager->setEventCallbacks(application);
 	application->windowManager = windowManager;
 
-	application->initTex(resourceDir);
-	application->initProg(resourceDir);
-	application->initGeom(resourceDir);
+	application->initProg(shaderDir);
+	application->initTex(textureDir);
+	application->initGeom(meshDir);
+	application->initMat();
 
 	while(! glfwWindowShouldClose(windowManager->getHandle()))
 	{

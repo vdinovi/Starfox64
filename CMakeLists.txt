@@ -9,7 +9,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "ext/glad/src/*.c")
 # We don't really need to include header and resource files to build, but it's
 # nice to have them show up in IDEs.
 file(GLOB_RECURSE HEADERS "src/*.h" "ext/glad/*/*.h")
-file(GLOB_RECURSE GLSL "resources/*.glsl")
+file(GLOB_RECURSE GLSL "shaders/*.glsl")
 
 include_directories("ext/glad/include")
 
