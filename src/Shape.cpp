@@ -6,8 +6,63 @@
 #include "GLSL.h"
 #include "Program.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 using namespace std;
 
+
+void Shape::loadMaterial(tinyobj::material_t & TOmat, std::string resourceDir) {
+	CHECKED_GL_CALL(glGenTextures(1, &material.texId));
+	CHECKED_GL_CALL(glBindTexture(GL_TEXTURE_2D, material.texId));
+	CHECKED_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	CHECKED_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+
+	CHECKED_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	CHECKED_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	int width, height, channels;
+	unsigned char * data = stbi_load((resourceDir + TOmat.diffuse_texname).c_str(), &width, &height, &channels, 0);
+	if (data) {
+		CHECKED_GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
+		CHECKED_GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
+		stbi_image_free(data);
+	}
+	else {
+		std::cout << "Error loading arwing texture\n";
+	}
+	material.ambient = glm::vec3(TOmat.ambient[0], TOmat.ambient[1], TOmat.ambient[2]),
+	material.diffuse = glm::vec3(TOmat.diffuse[0], TOmat.diffuse[1], TOmat.diffuse[2]),
+	material.specular = glm::vec3(TOmat.specular[0], TOmat.specular[1], TOmat.specular[2]);
+	material.shine = TOmat.shininess;
+};
+
+void Shape::setMaterial(unsigned texId, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float shine) {
+	material.texId = texId;
+	material.ambient = glm::vec3(ambient[0], ambient[1], ambient[2]),
+	material.diffuse = glm::vec3(diffuse[0], diffuse[1], diffuse[2]),
+	material.specular = glm::vec3(specular[0], specular[1], specular[2]);
+	material.shine = shine;
+};
+
+glm::vec3 Shape::getMax(std::vector<std::shared_ptr<Shape>> shapes) {
+	glm::vec3 Gmax = glm::vec3(-std::numeric_limits<float>::max());
+	for (size_t i = 0; i < shapes.size(); ++i) {
+		Gmax[0] = glm::max(Gmax[0], shapes[i]->max[0]);
+		Gmax[1] = glm::max(Gmax[1], shapes[i]->max[1]);
+		Gmax[2] = glm::max(Gmax[2], shapes[i]->max[2]);
+	}
+	return Gmax;
+}
+
+glm::vec3 Shape::getMin(std::vector<std::shared_ptr<Shape>> shapes) {
+	glm::vec3 Gmin = glm::vec3(std::numeric_limits<float>::min());
+	for (size_t i = 0; i < shapes.size(); ++i) {
+		Gmin[0] = glm::min(Gmin[0], shapes[i]->min[0]);
+		Gmin[1] = glm::min(Gmin[1], shapes[i]->min[1]);
+		Gmin[2] = glm::min(Gmin[2], shapes[i]->min[2]);
+	}
+	return Gmin;
+}
 
 // copy the data from the shape to this object
 void Shape::createShape(tinyobj::shape_t & shape) {
@@ -97,6 +152,14 @@ void Shape::draw(const shared_ptr<Program> prog) const
 	h_pos = h_nor = h_tex = -1;
 
 	CHECKED_GL_CALL(glBindVertexArray(vaoID));
+
+	if (useMaterial) {
+		CHECKED_GL_CALL(glBindTexture(GL_TEXTURE_2D, material.texId));
+		CHECKED_GL_CALL(glUniform3f(prog->getUniform("MatAmb"), material.ambient[0], material.ambient[1], material.ambient[2]));
+		CHECKED_GL_CALL(glUniform3f(prog->getUniform("MatDif"), material.diffuse[0], material.diffuse[1], material.diffuse[2]));
+		CHECKED_GL_CALL(glUniform3f(prog->getUniform("MatSpec"), material.specular[0], material.specular[1], material.specular[2]));
+		CHECKED_GL_CALL(glUniform1f(prog->getUniform("Shine"), material.shine));
+	}
 
 	// Bind position buffer
 	h_pos = prog->getAttribute("vertPos");

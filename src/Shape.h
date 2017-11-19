@@ -14,13 +14,11 @@ class Program;
 
 struct Material
 {
-	Material(tinyobj::material_t & material);
-
-	GLuint texId;
+	unsigned texId;
 	glm::vec3 ambient;
 	glm::vec3 diffuse;
 	glm::vec3 specular;
-	GLfloat shine;
+	unsigned shine;
 };
 
 class Shape
@@ -29,12 +27,18 @@ class Shape
 public:
 
 	void createShape(tinyobj::shape_t & shape);
+	void loadMaterial(tinyobj::material_t & material, std::string resourceDir);
+	void setMaterial(unsigned texId, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float shine);
 	void init();
 	void measure();
 	void draw(const std::shared_ptr<Program> prog) const;
 
+	static glm::vec3 getMax(std::vector<std::shared_ptr<Shape>> shapes);
+	static glm::vec3 getMin(std::vector<std::shared_ptr<Shape>> shapes);
+
 	glm::vec3 min = glm::vec3(0);
 	glm::vec3 max = glm::vec3(0);
+	bool useMaterial = false;
 	Material material;
 
 private:

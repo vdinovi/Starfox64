@@ -13,10 +13,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-//#include "tiny_obj_loader.h"
-
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+
 
 #define PI 3.14159
 
@@ -27,6 +26,14 @@ struct vao_t {
 	unsigned vbo_list[3]; // never really gonna have more than 3 vbo
 };
 
+struct mat_t {
+	GLuint texId;
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	GLfloat shine;
+};
+
 class Application : public EventCallbacks
 {
 
@@ -34,12 +41,9 @@ public:
 
 	WindowManager * windowManager = nullptr;
 	std::map<std::string, std::shared_ptr<Program>> programs;
-	//std::map<std::string, std::shared_ptr<Shape> shapes;
-	//std::map<std::string, mat_t> materials;
-	//std::map<std::string, GLuint> textures;
-
-	std::vector<std::shared_ptr<Shape>> arwingShapes;
-	std::vector<std::shared_ptr<Material>> arwingMaterials;
+	std::map<std::string, std::shared_ptr<Shape>> shapes;
+	std::map<std::string, mat_t> materials;
+	std::map<std::string, GLuint> textures;
 
 	int tex = 1;
 
@@ -74,72 +78,61 @@ public:
 
 	void initGeom(const std::string& resourceDir)
 	{
-	}
+		std::vector<tinyobj::shape_t> TOshapes;
+		std::vector<tinyobj::material_t> TOmats;
+		std::string err;
+		std::string basePath = resourceDir + "/";
+		bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "arwing.obj").c_str(), basePath.c_str());
+		if (!rc) {
+			std::cerr << err << std::endl;
+		}
+		else {
+			for (int i = 0; i < TOshapes.size(); ++i) {
+				std::string shapeName = std::string("arwing_") + std::to_string(i);
+				shapes[shapeName] = std::make_shared<Shape>();
+				shapes[shapeName]->createShape(TOshapes[i]);
+				shapes[shapeName]->measure();
+				shapes[shapeName]->init();
 
-	void createTex(std::string filepath, ) {
-
+				if (TOshapes[i].mesh.material_ids[0] >= 0) {
+					shapes[shapeName]->loadMaterial(TOmats[i], basePath);
+					shapes[shapeName]->useMaterial = true;
+				}
+				else {
+					shapes[shapeName]->setMaterial(
+						textures["white"],
+        				glm::vec3(0.02, 0.04, 0.2),
+        				glm::vec3(0.0, 0.16, 0.9),
+            			glm::vec3(0.14, 0.2, 0.8),
+            			5.0
+					);
+					shapes[shapeName]->useMaterial = true;
+				}
+			}
+		}
 	}
 
 	void initTex(const std::string& resourceDir)
 	{
-		textures["arwing_back"] = 0;
-		glGenTextures(1, &textures["arwing_back"]);
-		glBindTexture(GL_TEXTURE_2D, textures["arwing_back"]);
+		// Load in plain white texture to use in absence of mtl file
+		textures["white"] = 0;
+		glGenTextures(1, &textures["white"]);
+		glBindTexture(GL_TEXTURE_2D, textures["white"]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		std::string path = resourceDir + "/Arwing/36797B1E_c.png";
 		int width, height, channels;
-		unsigned char * data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+		unsigned char * data = stbi_load((resourceDir + "/white.png").c_str(), &width, &height, &channels, 0);
 		if (data) {
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			stbi_image_free(data);
 		}
 		else {
-			std::cout << "Error loading arwing texture\n";
+			std::cout << "Error loading plain white texture\n";
 		}
-
-		textures["arwing_blue"] = 0;
-		glGenTextures(1, &textures["arwing_blue"]);
-		glBindTexture(GL_TEXTURE_2D, textures["arwing_blue"]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		path = resourceDir + "/Arwing/70D48B2D_c.png";
-		data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-		if (data) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			stbi_image_free(data);
-		}
-		else {
-			std::cout << "Error loading arwing texture\n";
-		}
-
-		textures["arwing_blue"] = 0;
-		glGenTextures(1, &textures["arwing_body"]);
-		glBindTexture(GL_TEXTURE_2D, textures["arwing_body"]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		path = resourceDir + "/Arwing/53BB3C33_c.png";
-		data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-		if (data) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			stbi_image_free(data);
-		}
-		else {
-			std::cout << "Error loading arwing texture\n";
-		}
-
 	}
 
 	void initProg(const std::string& resourceDir)
@@ -185,6 +178,11 @@ public:
 		programs["texture"]->addUniform("P");
 		programs["texture"]->addUniform("V");
 		programs["texture"]->addUniform("M");
+		programs["texture"]->addUniform("lightDir");
+		programs["texture"]->addUniform("MatAmb");
+		programs["texture"]->addUniform("MatDif");
+		programs["texture"]->addUniform("MatSpec");
+		programs["texture"]->addUniform("Shine");
 		programs["texture"]->addAttribute("vertPos");
 		programs["texture"]->addAttribute("vertNor");
 		programs["texture"]->addAttribute("vertTex");
@@ -203,6 +201,8 @@ public:
 		programs["gblur"]->addAttribute("vertTex");
 	}
 
+    void initMat() {}
+	/*
     void initMat()
 	{
 		materials["shiny_blue_plastic"] = {
@@ -229,7 +229,8 @@ public:
             glm::vec3(0.7304, 0.9049, 0.1234),
             15.0
 		};
-    }
+	}
+	*/
 
 	void render()
 	{
@@ -253,35 +254,43 @@ public:
 		}
 		M->loadIdentity();
 
-		Shape arwing = *shapes["arwing"];
-		glm::vec3 gTrans = arwing.min + 0.5f * (arwing.max - arwing.min);
-		float gScale = 0;
-		if (arwing.max.x > arwing.max.y && arwing.max.x > arwing.max.z)
-		{
-			gScale = 2.0 / (arwing.max.x - arwing.min.x);
+
+		std::vector<std::shared_ptr<Shape>> arwingShapes;
+		for (auto it = shapes.begin(); it != shapes.end(); ++it) {
+			arwingShapes.push_back(it->second);
 		}
-		else if (arwing.max.y > arwing.max.x && arwing.max.y > arwing.max.z)
+		glm::vec3 arwingMin = Shape::getMin(arwingShapes);
+		glm::vec3 arwingMax = Shape::getMax(arwingShapes);
+
+		glm::vec3 arwingTrans = arwingMin + 0.5f * (arwingMax - arwingMin);
+		float arwingScale = 0;
+		if (arwingMax.x > arwingMax.y && arwingMax.x > arwingMax.z)
 		{
-			gScale = 2.0 / (arwing.max.y - arwing.min.y);
+			arwingScale = 2.0 / (arwingMax.x - arwingMin.x);
+		}
+		else if (arwingMax.y > arwingMax.x && arwingMax.y > arwingMax.z)
+		{
+			arwingScale = 2.0 / (arwingMax.y - arwingMin.y);
 		}
 		else
 		{
-			gScale = 2.0 / (arwing.max.z - arwing.min.z);
+			arwingScale = 2.0 / (arwingMax.z - arwingMin.z);
 		}
 
+		// Draw arwing parts
 		programs["texture"]->bind();
-		M->pushMatrix();
-			M->translate(glm::vec3(0, 0, -10));
-			M->rotate(glfwGetTime(), glm::vec3(1, 0, 0));
-			M->scale(gScale);
-			M->translate(-1.0f*gTrans);
-			glUniformMatrix4fv(programs["texture"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-			glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-			glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-			glBindTexture(GL_TEXTURE_2D, textures["arwing1"]);
-			glBindTexture(GL_TEXTURE_2D, textures["arwing2"]);
-			arwing.draw(programs["texture"]);
-		M->popMatrix();
+		for (auto shape = shapes.begin(); shape != shapes.end(); ++shape) {
+			M->pushMatrix();
+				M->translate(glm::vec3(0, 0, -10));
+				M->rotate(glfwGetTime(), glm::vec3(1, 0, 0));
+				M->scale(arwingScale);
+				M->translate(-1.0f*arwingTrans);
+				glUniformMatrix4fv(programs["texture"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+				glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+				glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+				shape->second->draw(programs["texture"]);
+			M->popMatrix();
+		}
 		programs["texture"]->unbind();
 
 		P->popMatrix();
