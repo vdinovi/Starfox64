@@ -13,6 +13,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+//#include "tiny_obj_loader.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -25,7 +27,7 @@ struct vao_t {
 	unsigned vbo_list[3]; // never really gonna have more than 3 vbo
 };
 
-struct material_t {
+struct mat_t {
 	glm::vec3 ambient;
 	glm::vec3 diffuse;
 	glm::vec3 specular;
@@ -41,7 +43,7 @@ public:
 	std::map<std::string, std::shared_ptr<Program>> programs;
 	std::map<std::string, std::shared_ptr<Shape>> shapes;
 	std::map<std::string, GLuint> textures;
-	std::map<std::string, material_t> materials;
+	std::map<std::string, mat_t> materials;
 
 	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
@@ -73,10 +75,32 @@ public:
 
 	void initGeom(const std::string& resourceDir)
 	{
-		shapes["sphere"] = std::make_shared<Shape>();
-		shapes["sphere"]->loadMesh(resourceDir + "/sphere.obj");
-		shapes["sphere"]->resize();
-		shapes["sphere"]->init();
+		// Load Sphere
+		std::vector<tinyobj::shape_t> TOshapes;
+		std::vector<tinyobj::material_t> objMaterials;
+		std::string errStr;
+		bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDir + "/sphere.obj").c_str());
+		if (!rc) {
+			std::cerr << errStr << std::endl;
+		}
+		else {
+			shapes["sphere"] = std::make_shared<Shape>();
+			shapes["sphere"]->createShape(TOshapes[0]);
+			shapes["sphere"]->measure();
+			shapes["sphere"]->init();
+		}
+
+		// Load Arwing
+		rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr, (resourceDir + "/Arwing").c_str());
+		if (!rc) {
+			std::cerr << errStr << std::endl;
+		}
+		else {
+			shapes["arwing"] = std::make_shared<Shape>();
+			shapes["arwing"]->createShape(TOshapes[0]);
+			shapes["arwing"]->measure();
+			shapes["arwing"]->init();
+		}
 	}
 
 	void initTex(const std::string& resourceDir)
@@ -142,7 +166,7 @@ public:
 		programs["texture"]->addUniform("M");
 		programs["texture"]->addAttribute("vertPos");
 		programs["texture"]->addAttribute("vertNor");
-		programs["texture"]->addAttribute("vertTexCoord");
+		programs["texture"]->addAttribute("vertTex");
 
 		programs["gblur"] = std::make_shared<Program>();
 		programs["gblur"]->setVerbose(true);
@@ -155,7 +179,7 @@ public:
 		programs["gblur"]->addUniform("M");
 		programs["gblur"]->addAttribute("vertPos");
 		programs["gblur"]->addAttribute("vertNor");
-		programs["gblur"]->addAttribute("vertTexCoord");
+		programs["gblur"]->addAttribute("vertTex");
 	}
 
     void initMat()
@@ -197,7 +221,7 @@ public:
 
 		auto P = std::make_shared<MatrixStack>();
 		auto M = std::make_shared<MatrixStack>();
-		//glm::mat4 V = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
+		glm::mat4 V = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 
 		P->pushMatrix();
 		if (width > height) {
@@ -207,6 +231,15 @@ public:
 			P->perspective(45.f, aspect, 1.f, 100.f);
 		}
 		M->loadIdentity();
+
+		programs["normal"]->bind();
+		M->pushMatrix();
+			glUniformMatrix4fv(programs["normal"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+			glUniformMatrix4fv(programs["normal"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+			glUniformMatrix4fv(programs["normal"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+			shapes["sphere"]->draw(programs["normal"]);
+		M->popMatrix();
+		programs["normal"]->unbind();
 
 		P->popMatrix();
 	}

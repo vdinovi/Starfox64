@@ -5,8 +5,8 @@
 //
 
 #pragma once
-#ifndef LAB471_GLSL_H_INCLUDED
-#define LAB471_GLSL_H_INCLUDED
+#ifndef FINAL_471_GLSL_H_INCLUDED
+#define FINAL_471_GLSL_H_INCLUDED
 
 #include <glad/glad.h>
 #include <string>

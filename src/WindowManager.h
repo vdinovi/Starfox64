@@ -16,8 +16,8 @@
 
 #pragma  once
 
-#ifndef LAB471_WINDOW_H_INCLUDED
-#define LAB471_WINDOW_H_INCLUDED
+#ifndef FINAL_471_WINDOW_H_INCLUDED
+#define FINAL_471_WINDOW_H_INCLUDED
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
