@@ -12,6 +12,16 @@
 
 class Program;
 
+struct Material
+{
+	Material(tinyobj::material_t & material);
+
+	GLuint texId;
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	GLfloat shine;
+};
 
 class Shape
 {
@@ -25,6 +35,7 @@ public:
 
 	glm::vec3 min = glm::vec3(0);
 	glm::vec3 max = glm::vec3(0);
+	Material material;
 
 private:
 
@@ -37,7 +48,6 @@ private:
 	unsigned int norBufID = 0;
 	unsigned int texBufID = 0;
 	unsigned int vaoID = 0;
-
 };
 
-#endif // LAB471_SHAPE_H_INCLUDED
+#endif // FINAL_471_SHAPE_H_INCLUDED

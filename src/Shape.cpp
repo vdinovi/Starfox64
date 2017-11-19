@@ -10,8 +10,7 @@ using namespace std;
 
 
 // copy the data from the shape to this object
-void Shape::createShape(tinyobj::shape_t & shape)
-{
+void Shape::createShape(tinyobj::shape_t & shape) {
 	posBuf = shape.mesh.positions;
 	norBuf = shape.mesh.normals;
 	texBuf = shape.mesh.texcoords;

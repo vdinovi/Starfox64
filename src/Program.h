@@ -1,8 +1,8 @@
 
 #pragma  once
 
-#ifndef LAB471_PROGRAM_H_INCLUDED
-#define LAB471_PROGRAM_H_INCLUDED
+#ifndef FINAL_471_PROGRAM_H_INCLUDED
+#define FINAL_471_PROGRAM_H_INCLUDED
 
 #include <map>
 #include <string>
