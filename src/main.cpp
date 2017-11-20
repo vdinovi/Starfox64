@@ -167,11 +167,27 @@ public:
 			std::cerr << err << std::endl;
 		}
 		else {
+			std::string objName = std::string("quad");
 			std::shared_ptr<Shape> shape = std::make_shared<Shape>();
 			shape->createShape(TOshapes[0]);
 			shape->measure();
 			shape->init();
-			shapes["quad"].push_back(shape);
+
+			if (TOshapes[0].mesh.material_ids[0] >= 0) {
+				shape->loadMaterial(TOmats[0], basePath);
+				shape->useMaterial = true;
+			}
+			else {
+				shape->setMaterial(
+					textures["white"],
+        			glm::vec3(0.02, 0.04, 0.2),
+        			glm::vec3(0.0, 0.16, 0.9),
+            		glm::vec3(0.14, 0.2, 0.8),
+            		5.0
+				);
+				shape->useMaterial = true;
+			}
+			shapes[objName].push_back(shape);
 		}
 	}
 
@@ -318,6 +334,7 @@ public:
 		M->loadIdentity();
 
 
+		/*
 		glm::vec3 arwingMin = Shape::getMin(shapes["arwing"]);
 		glm::vec3 arwingMax = Shape::getMax(shapes["arwing"]);
 
@@ -354,6 +371,9 @@ public:
 				(*shape)->draw(programs["texture"]);
 			M->popMatrix();
 		}
+		*/
+
+		Shape quad = *shapes["quad"][0];
 
 		M->pushMatrix();
 			M->translate(glm::vec3(0, 0, 10));
@@ -362,7 +382,8 @@ public:
 			glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 			glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 			glUniform3f(programs["texture"]->getUniform("lightDir"), 1.0, 0.0, 0.0);
-			shapes["quad"][0]->draw(programs["texture"]);
+			//shapes["quad"][0]->draw(programs["texture"]);
+			quad.draw(programs["texture"]);
 		M->popMatrix();
 
 		programs["texture"]->unbind();
