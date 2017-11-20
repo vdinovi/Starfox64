@@ -17,6 +17,7 @@
 
 
 #define TURN_RATE 10
+#define MOVE_SPEED 0.75
 
 #define PI 3.14159
 
@@ -32,17 +33,20 @@ public:
 
 
 
+	// Camera
+	bool cameraUnlock = false;
+	bool mouseDown = false;
+	std::vector<double> initialClick = { 0.0, 0.0 };
 	glm::vec3 cameraPos = glm::vec3(0.f, 0.f, -5.f);
-	glm::vec3 cameraLook = glm::vec3(0.f, 0.f, 1.f);
+	glm::vec2 lookDir = glm::vec2(glm::radians(90.0), 0);
+	glm::vec2 newLook = lookDir;
 
 	// arwing
-	glm::vec3 arwingPos = glm::vec3(0.0, 0.0, 0.0);
-	glm::vec3 arwingVel = glm::vec3(0.0, 0.0, 1.0);
-	glm::vec3 arwingAcc = glm::vec3(0.0, 0.0, 0.0);
-	double pitch = 0;
-	double yaw = 0;
+	glm::vec3 arwingPos = glm::vec3(0.f, 0.f, 5.f);
+	double yaw = 0.0;
+	double pitch = 0.0;
 
-
+	// Ground
 	float texOffset = 0;
 
 
@@ -53,46 +57,99 @@ public:
 		{
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
-		else if (key == GLFW_KEY_A) {
+		if (key == GLFW_KEY_U && action == GLFW_PRESS) {
+				cameraUnlock = cameraUnlock ? false : true;
+		}
+
+		// Camera controls
+		if (cameraUnlock) {
+			if(key == GLFW_KEY_W) {
+				cameraPos += glm::vec3(
+					MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
+					MOVE_SPEED*sin(lookDir[1]),
+					MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
+				);
+			}
+        	else if(key == GLFW_KEY_S) {
+				cameraPos -= glm::vec3(
+					MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
+					MOVE_SPEED*sin(lookDir[1]),
+					MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
+				);
+			}
+        	else if( key == GLFW_KEY_A) {
+				glm::vec3 scaledLook = glm::vec3(
+					MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
+					MOVE_SPEED*sin(lookDir[1]),
+					MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
+				);
+				cameraPos -= glm::cross(scaledLook, glm::vec3(0, 1, 0));
+			}
+       		else if( key == GLFW_KEY_D) {
+				glm::vec3 scaledLook = glm::vec3(
+					MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
+					MOVE_SPEED*sin(lookDir[1]),
+					MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
+				);
+				cameraPos += glm::cross(scaledLook, glm::vec3(0, 1, 0));
+			}
+		}
+
+		// Arwing Controls
+		if (key == GLFW_KEY_LEFT) {
 			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				yaw = glm::min(yaw + TURN_RATE, 40.0);
+				//yaw = glm::min(yaw + TURN_RATE, 40.0);
+				yaw = 40;
+				arwingPos.x = glm::max(arwingPos.x - glm::cos(yaw), -1.0);
 			}
 			else {
 				yaw = 0;
 			}
-			arwingAcc.x = glm::cos(yaw);
 		}
-		else if (key == GLFW_KEY_D) {
+		if (key == GLFW_KEY_RIGHT) {
 			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				yaw = glm::max(yaw - TURN_RATE, -40.0);
+				//yaw = glm::max(yaw - TURN_RATE, -40.0);
+				yaw = -40;
+				arwingPos.x = glm::min(arwingPos.x + glm::cos(yaw), 1.0);
 			}
 			else {
 				yaw = 0;
 			}
-			arwingAcc.x = glm::cos(yaw);
 		}
-		else if (key == GLFW_KEY_W) {
+		if (key == GLFW_KEY_UP) {
 			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				pitch = glm::max(pitch - TURN_RATE, -40.0);
+				//pitch = glm::max(pitch - TURN_RATE, -40.0);
+				pitch = -40;
+				arwingPos.y = glm::max(arwingPos.y - glm::cos(pitch), -1.0);
 			}
 			else {
 				pitch = 0;
 			}
-			arwingAcc.y = glm::sin(pitch);
 		}
-		else if (key == GLFW_KEY_S) {
+		if (key == GLFW_KEY_DOWN) {
 			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				pitch = glm::min(pitch + TURN_RATE, 40.0);
+				//pitch = glm::min(pitch + TURN_RATE, 40.0);
+				pitch = 40;
+				arwingPos.y = glm::min(arwingPos.y + glm::cos(pitch), 1.0);
 			}
 			else {
 				pitch = 0;
 			}
-			arwingAcc.y = glm::sin(pitch);
 		}
 	}
 
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
 	{
+		if (action == GLFW_PRESS)
+        {
+			glfwGetCursorPos(window, &(initialClick[0]), &(initialClick[1]));
+            mouseDown = true;
+        }
+        if (action == GLFW_RELEASE)
+        {
+			lookDir = newLook;
+           	mouseDown = false;
+        }
 	}
 
 	void scrollCallback(GLFWwindow *window, double dX, double dY)
@@ -101,6 +158,12 @@ public:
 
 	void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
 	{
+		if (cameraUnlock && mouseDown) {
+        	int width, height;
+        	glfwGetWindowSize(window, &width, &height);
+			newLook[0] = lookDir[0] + glm::radians(-90 * (xpos - initialClick[0])/(width/2));
+			newLook[1] = lookDir[1] + glm::radians(glm::clamp(80.0 * (ypos - initialClick[1])/(height/2), -80.0, 80.0));
+		}
 	}
 
 	void resizeCallback(GLFWwindow *window, int in_width, int in_height)
@@ -269,7 +332,13 @@ public:
 
 		auto P = std::make_shared<MatrixStack>();
 		auto M = std::make_shared<MatrixStack>();
-		glm::mat4 V = glm::lookAt(cameraPos, cameraPos + cameraLook, glm::vec3(0, 1, 0));
+		glm::vec3 lookV = glm::vec3(
+			cos(newLook[1])*cos(newLook[0]),
+			sin(newLook[1]),
+			cos(newLook[1])*sin(newLook[0])
+		);
+		glm::mat4 V = glm::lookAt(cameraPos, cameraPos + lookV , glm::vec3(0, 1, 0));
+		std::cout << cameraPos[0] + lookV[0] << ", " << cameraPos[1] + lookV[1] << ", " << cameraPos[2] + lookV[2] << std::endl;
 
 		P->pushMatrix();
 		if (width > height) {
@@ -299,8 +368,6 @@ public:
 			arwingScale = 2.0 / (arwingMax.z - arwingMin.z);
 		}
 
-		arwingVel += arwingAcc;
-
 		// Draw arwing parts
 		programs["texture"]->bind();
 		for (auto shape = shapes["arwing"].begin(); shape != shapes["arwing"].end(); ++shape) {
@@ -323,9 +390,9 @@ public:
 
 		programs["texture"]->bind();
 		M->pushMatrix();
-			M->translate(glm::vec3(0, -5, 10));
-			M->scale(glm::vec3(20, 20, 0));
-			M->rotate(glm::radians(80.0), glm::vec3(1, 0, 0));
+			M->translate(glm::vec3(0, -1, 1));
+			M->scale(glm::vec3(20, 20, 20));
+            M->rotate(glm::radians(80.0), glm::vec3(1, 0, 0));
 			glUniformMatrix4fv(programs["texture"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 			glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 			glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
