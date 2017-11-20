@@ -20,21 +20,6 @@
 
 #define PI 3.14159
 
-// Helper struct for VAOs
-struct vao_t {
-	unsigned vao;
-	unsigned ibo;
-	unsigned vbo_list[3]; // never really gonna have more than 3 vbo
-};
-
-struct mat_t {
-	GLuint texId;
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
-	GLfloat shine;
-};
-
 class Application : public EventCallbacks
 {
 
@@ -43,7 +28,6 @@ public:
 	WindowManager * windowManager = nullptr;
 	std::map<std::string, std::shared_ptr<Program>> programs;
 	std::map<std::string, std::vector<std::shared_ptr<Shape>>> shapes;
-	std::map<std::string, std::vector<mat_t>> materials;
 	std::map<std::string, GLuint> textures;
 
 
@@ -57,6 +41,9 @@ public:
 	glm::vec3 arwingAcc = glm::vec3(0.0, 0.0, 0.0);
 	double pitch = 0;
 	double yaw = 0;
+
+
+	float texOffset = 0;
 
 
 
@@ -123,14 +110,14 @@ public:
 		glViewport(0, 0, width, height);
 	}
 
-
-
 	void initGeom(const std::string& resourceDir)
 	{
 		std::vector<tinyobj::shape_t> TOshapes;
 		std::vector<tinyobj::material_t> TOmats;
 		std::string err;
 		std::string basePath = resourceDir + "/";
+
+		// Load Arwing
 		bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "arwing.obj").c_str(), basePath.c_str());
 		if (!rc) {
 			std::cerr << err << std::endl;
@@ -142,52 +129,42 @@ public:
 				shape->createShape(TOshapes[i]);
 				shape->measure();
 				shape->init();
-
+				shapes[objName].push_back(shape);
 				if (TOshapes[i].mesh.material_ids[0] >= 0) {
-					shape->loadMaterial(TOmats[i], basePath);
+					shape->loadMaterial(TOmats[TOshapes[i].mesh.material_ids[0]], basePath);
 					shape->useMaterial = true;
 				}
 				else {
-					shape->setMaterial(
-						textures["white"],
-        				glm::vec3(0.02, 0.04, 0.2),
-        				glm::vec3(0.0, 0.16, 0.9),
-            			glm::vec3(0.14, 0.2, 0.8),
-            			5.0
-					);
+					shape->setMaterial(textures["white"], glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5),
+									   glm::vec3(0.5, 0.5, 0.5), 1.0);
 					shape->useMaterial = true;
 				}
-				shapes[objName].push_back(shape);
 			}
 		}
 
-		// Load quad shape
+		// Load Quad
 		rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "quad.obj").c_str(), basePath.c_str());
 		if (!rc) {
 			std::cerr << err << std::endl;
 		}
 		else {
-			std::string objName = std::string("quad");
-			std::shared_ptr<Shape> shape = std::make_shared<Shape>();
-			shape->createShape(TOshapes[0]);
-			shape->measure();
-			shape->init();
-
-			if (TOshapes[0].mesh.material_ids[0] >= 0) {
-				shape->loadMaterial(TOmats[0], basePath);
-				shape->useMaterial = true;
+			std::string objName("quad");
+			for (int i = 0; i < TOshapes.size(); ++i) {
+				std::shared_ptr<Shape> shape = std::make_shared<Shape>();
+				shape->createShape(TOshapes[0]);
+				shape->measure();
+				shape->init();
+				if (TOshapes[i].mesh.material_ids[0] >= 0) {
+					shape->loadMaterial(TOmats[TOshapes[i].mesh.material_ids[0]], basePath);
+					shape->useMaterial = true;
+				}
+				else {
+					shape->setMaterial(textures["white"], glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5),
+									   glm::vec3(0.5, 0.5, 0.5), 1.0);
+					shape->useMaterial = true;
+				}
+				shapes[objName].push_back(shape);
 			}
-			else {
-				shape->setMaterial(
-					textures["white"],
-        			glm::vec3(0.02, 0.04, 0.2),
-        			glm::vec3(0.0, 0.16, 0.9),
-            		glm::vec3(0.14, 0.2, 0.8),
-            		5.0
-				);
-				shape->useMaterial = true;
-			}
-			shapes[objName].push_back(shape);
 		}
 	}
 
@@ -262,6 +239,7 @@ public:
 		programs["texture"]->addUniform("MatDif");
 		programs["texture"]->addUniform("MatSpec");
 		programs["texture"]->addUniform("Shine");
+		programs["texture"]->addUniform("texOffset");
 		programs["texture"]->addAttribute("vertPos");
 		programs["texture"]->addAttribute("vertNor");
 		programs["texture"]->addAttribute("vertTex");
@@ -279,37 +257,6 @@ public:
 		programs["gblur"]->addAttribute("vertNor");
 		programs["gblur"]->addAttribute("vertTex");
 	}
-
-    void initMat() {}
-	/*
-    void initMat()
-	{
-		materials["shiny_blue_plastic"] = {
-        	glm::vec3(0.02, 0.04, 0.2),
-        	glm::vec3(0.0, 0.16, 0.9),
-            glm::vec3(0.14, 0.2, 0.8),
-            120.0
-		};
-		materials["flat_grey"] = {
-        	glm::vec3(0.13, 0.13, 0.14),
-        	glm::vec3(0.3, 0.3, 0.4),
-            glm::vec3(0.3, 0.3, 0.4),
-            4.0
-		};
-		materials["brass"] = {
-        	glm::vec3(0.3294, 0.2235, 0.02745),
-        	glm::vec3(0.7804, 0.5686, 0.11373),
-            glm::vec3(0.9922, 0.941176, 0.80784),
-            27.9
-		};
-		materials["pink"] = {
-        	glm::vec3(0.6231, 0.1111, 0.9130),
-        	glm::vec3(0.7777, 0.1084, 0.2323),
-            glm::vec3(0.7304, 0.9049, 0.1234),
-            15.0
-		};
-	}
-	*/
 
 	void render()
 	{
@@ -334,7 +281,6 @@ public:
 		M->loadIdentity();
 
 
-		/*
 		glm::vec3 arwingMin = Shape::getMin(shapes["arwing"]);
 		glm::vec3 arwingMax = Shape::getMax(shapes["arwing"]);
 
@@ -368,25 +314,28 @@ public:
 				glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 				glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 				glUniform3f(programs["texture"]->getUniform("lightDir"), 1.0, 0.0, 0.0);
+				glUniform2f(programs["texture"]->getUniform("texOffset"), 0.0, 0.0);
 				(*shape)->draw(programs["texture"]);
 			M->popMatrix();
 		}
-		*/
+		programs["texture"]->unbind();
 
-		Shape quad = *shapes["quad"][0];
 
+		programs["texture"]->bind();
 		M->pushMatrix();
-			M->translate(glm::vec3(0, 0, 10));
-			M->scale(glm::vec3(10, 10, 10));
+			M->translate(glm::vec3(0, -5, 10));
+			M->scale(glm::vec3(20, 20, 0));
+			M->rotate(glm::radians(80.0), glm::vec3(1, 0, 0));
 			glUniformMatrix4fv(programs["texture"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 			glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 			glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 			glUniform3f(programs["texture"]->getUniform("lightDir"), 1.0, 0.0, 0.0);
-			//shapes["quad"][0]->draw(programs["texture"]);
-			quad.draw(programs["texture"]);
+			glUniform2f(programs["texture"]->getUniform("texOffset"), 0.0, texOffset);
+			shapes["quad"][0]->draw(programs["texture"]);
 		M->popMatrix();
-
 		programs["texture"]->unbind();
+
+		texOffset += 0.003;
 
 		P->popMatrix();
 	}
@@ -409,7 +358,6 @@ int main(int argc, char **argv)
 	application->initProg(shaderDir);
 	application->initTex(resourceDir);
 	application->initGeom(resourceDir);
-	application->initMat();
 
 	while(! glfwWindowShouldClose(windowManager->getHandle()))
 	{

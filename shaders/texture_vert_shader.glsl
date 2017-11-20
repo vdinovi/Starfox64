@@ -6,6 +6,7 @@ uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
 uniform vec3 lightDir;
+uniform vec2 texOffset;
 
 out vec3 fragNor;
 out vec3 fragPos;
@@ -20,6 +21,6 @@ void main()
 	fragPos = gl_Position.xyz;
 	fragNor = (transpose(inverse(M)) * vec4(vertNor, 0.0)).xyz;
     fragLight = normalize(lightDir);
-	fragTexCoord = vertTex;
+	fragTexCoord = vertTex + texOffset;
 }
 
