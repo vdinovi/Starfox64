@@ -5,7 +5,11 @@ layout(location = 2) in vec2 vertTex;
 uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
-uniform vec3 lightDir;
+uniform vec3 lightPos;
+uniform vec3 MatAmb;
+uniform vec3 MatDif;
+uniform vec3 MatSpec;
+uniform float Shine;
 uniform vec2 texOffset;
 
 out vec3 fragNor;
@@ -20,7 +24,7 @@ void main()
 
 	fragPos = gl_Position.xyz;
 	fragNor = (transpose(inverse(M)) * vec4(vertNor, 0.0)).xyz;
-    fragLight = normalize(lightDir);
+    fragLight = normalize(lightPos - gl_Position.xyz);
 	fragTexCoord = vertTex + texOffset;
 }
 

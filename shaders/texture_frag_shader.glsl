@@ -19,6 +19,12 @@ void main()
         vec3 L = normalize(fragLight);
 
         float l_dot_n = clamp(dot(L, N), 0.0, 1.0);
-        //color =  MatAmb *  + MatDif * l_dot_n * texture(uTexture, fragTexCoord).xyz + MatSpec * pow(l_dot_n, shine);
+
+        // This procedure is not producting proper color values, no idea what is happening
+        /*vec3 ambient = fragLight * texture(uTexture, fragTexCoord).xyz;
+        vec3 diffuse = fragLight * l_dot_n * texture(uTexture, fragTexCoord).xyz;
+        vec3 specular = fragLight * pow(l_dot_n, Shine) * texture(uTexture, fragTexCoord).xyz;
+        color = ambient + diffuse + specular;*/
+
         color = texture(uTexture, fragTexCoord).xyz;
 }

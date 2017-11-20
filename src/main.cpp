@@ -37,12 +37,12 @@ public:
 	bool cameraUnlock = false;
 	bool mouseDown = false;
 	std::vector<double> initialClick = { 0.0, 0.0 };
-	glm::vec3 cameraPos = glm::vec3(0.f, 0.f, -5.f);
-	glm::vec2 lookDir = glm::vec2(glm::radians(90.0), 0);
+	glm::vec3 cameraPos = glm::vec3(0.0, 0.0, -5.0);
+	glm::vec2 lookDir = glm::vec2(glm::radians(90.0), 0.0);
 	glm::vec2 newLook = lookDir;
 
 	// arwing
-	glm::vec3 arwingPos = glm::vec3(0.f, 0.f, 5.f);
+	glm::vec3 arwingPos = glm::vec3(0.0, 0.0, 5.0);
 	double yaw = 0.0;
 	double pitch = 0.0;
 
@@ -58,7 +58,15 @@ public:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 		if (key == GLFW_KEY_U && action == GLFW_PRESS) {
-				cameraUnlock = cameraUnlock ? false : true;
+			if (cameraUnlock) {
+				cameraUnlock = false;
+				cameraPos = glm::vec3(0.0, 0.0, -5.0);
+				lookDir = newLook = glm::vec2(glm::radians(90.0), 0.0);
+
+			}
+			else {
+				cameraUnlock = true;
+			}
 		}
 
 		// Camera controls
@@ -280,7 +288,8 @@ public:
 		programs["material"]->addUniform("P");
 		programs["material"]->addUniform("V");
 		programs["material"]->addUniform("M");
-		programs["material"]->addUniform("lightDir");
+		programs["material"]->addUniform("lightPos");
+		//programs["material"]->addUniform("lightDir");
 		programs["material"]->addUniform("MatAmb");
 		programs["material"]->addUniform("MatDif");
 		programs["material"]->addUniform("MatSpec");
@@ -297,7 +306,8 @@ public:
 		programs["texture"]->addUniform("P");
 		programs["texture"]->addUniform("V");
 		programs["texture"]->addUniform("M");
-		programs["texture"]->addUniform("lightDir");
+		programs["texture"]->addUniform("lightPos");
+		//programs["texture"]->addUniform("lightDir");
 		programs["texture"]->addUniform("MatAmb");
 		programs["texture"]->addUniform("MatDif");
 		programs["texture"]->addUniform("MatSpec");
@@ -338,7 +348,6 @@ public:
 			cos(newLook[1])*sin(newLook[0])
 		);
 		glm::mat4 V = glm::lookAt(cameraPos, cameraPos + lookV , glm::vec3(0, 1, 0));
-		std::cout << cameraPos[0] + lookV[0] << ", " << cameraPos[1] + lookV[1] << ", " << cameraPos[2] + lookV[2] << std::endl;
 
 		P->pushMatrix();
 		if (width > height) {
@@ -380,7 +389,7 @@ public:
 				glUniformMatrix4fv(programs["texture"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 				glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 				glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-				glUniform3f(programs["texture"]->getUniform("lightDir"), 1.0, 0.0, 0.0);
+				glUniform3f(programs["texture"]->getUniform("lightPos"), 5.0, 0.0, 0.0);
 				glUniform2f(programs["texture"]->getUniform("texOffset"), 0.0, 0.0);
 				(*shape)->draw(programs["texture"]);
 			M->popMatrix();
@@ -390,13 +399,13 @@ public:
 
 		programs["texture"]->bind();
 		M->pushMatrix();
-			M->translate(glm::vec3(0, -1, 1));
+			M->translate(glm::vec3(0, -5, 2));
 			M->scale(glm::vec3(20, 20, 20));
             M->rotate(glm::radians(80.0), glm::vec3(1, 0, 0));
 			glUniformMatrix4fv(programs["texture"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 			glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 			glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-			glUniform3f(programs["texture"]->getUniform("lightDir"), 1.0, 0.0, 0.0);
+			glUniform3f(programs["texture"]->getUniform("lightPos"), 5.0, 0.0, 0.0);
 			glUniform2f(programs["texture"]->getUniform("texOffset"), 0.0, texOffset);
 			shapes["quad"][0]->draw(programs["texture"]);
 		M->popMatrix();
@@ -418,7 +427,7 @@ int main(int argc, char **argv)
 	Application *application = new Application();
 
 	WindowManager * windowManager = new WindowManager();
-	windowManager->init(480, 480);
+	windowManager->init(1024, 768);
 	windowManager->setEventCallbacks(application);
 	application->windowManager = windowManager;
 

@@ -14,3 +14,8 @@ Place to record development activity/thoughts/resources
 * Right now alot of the game state is in the Application class which is pretty disorganized. Should probably start factoring code into distinct entity classes.
 * This ship pitch/yaw/planar-movement is pretty clunky but it works properly; eventually that will need to be cleaned up.
 * Feeling pretty good about the project so far
+
+
+### 11/20 2:49pm
+* Tried to get phong working with textures (material/texture info loaded from mtl files). The best I could do was get some strange coloration -- not sure why :(. Gave up on it for now and reverted to using just textures with no lighting.
+* Frustrated with ^^^, skipping for now. Next thing is to structure the existing code and implement some basic collision detection with the ground.
