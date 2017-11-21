@@ -10,6 +10,7 @@
 #include "WindowManager.h"
 #include "Shape.h"
 #include "Arwing.h"
+#include "Environment.h"
 #include "common.h"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -43,10 +44,11 @@ public:
 
 	// Arwing
 	std::shared_ptr<Arwing> arwing;
-
 	// Environment
+	std::shared_ptr<Environment> environment;
+
+	// Light
 	glm::vec3 lightPos = {1.0, 1.0, 1.0};
-	glm::vec2 texOffset = {0.0, 0.0};
 
 
 
@@ -182,53 +184,12 @@ public:
 		arwing = std::make_shared<Arwing>(basePath);
 		arwing->measure();
 
-		// Load Quad
-		bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "quad.obj").c_str(), basePath.c_str());
-		if (!rc) {
-			std::cerr << err << std::endl;
-		}
-		else {
-			std::string objName("quad");
-			for (int i = 0; i < TOshapes.size(); ++i) {
-				std::shared_ptr<Shape> shape = std::make_shared<Shape>();
-				shape->createShape(TOshapes[0]);
-				shape->measure();
-				shape->init();
-				if (TOshapes[i].mesh.material_ids[0] >= 0) {
-					shape->loadMaterial(TOmats[TOshapes[i].mesh.material_ids[0]], basePath);
-					shape->useMaterial = true;
-				}
-				else {
-					shape->setMaterial(textures["white"], glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5),
-									   glm::vec3(0.5, 0.5, 0.5), 1.0);
-					shape->useMaterial = true;
-				}
-				shapes[objName].push_back(shape);
-			}
-		}
+		environment = std::make_shared<Environment>(basePath);
+		//environment->measure();
 	}
 
 	void initTex(const std::string& resourceDir)
 	{
-		// Load in plain white texture to use in absence of mtl file
-		textures["white"] = 0;
-		glGenTextures(1, &textures["white"]);
-		glBindTexture(GL_TEXTURE_2D, textures["white"]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		int width, height, channels;
-		unsigned char * data = stbi_load((resourceDir + "/white.png").c_str(), &width, &height, &channels, 0);
-		if (data) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			stbi_image_free(data);
-		}
-		else {
-			std::cout << "Error loading plain white texture\n";
-		}
 	}
 
 	void initProg(const std::string& resourceDir)
@@ -237,34 +198,6 @@ public:
 		glClearColor(0.3f, 0.5f, 0.65f, 0.0f);
 		glEnable(GL_DEPTH_TEST);
 		glBlendColor(1,1,1,1);
-
-		programs["normal"] = std::make_shared<Program>();
-		programs["normal"]->setVerbose(true);
-		programs["normal"]->setShaderNames(resourceDir + "/vert_shader.glsl",
-    		                       		   resourceDir + "/normal_frag_shader.glsl");
-		programs["normal"]->init();
-		programs["normal"]->addUniform("P");
-		programs["normal"]->addUniform("V");
-		programs["normal"]->addUniform("M");
-		programs["normal"]->addAttribute("vertPos");
-		programs["normal"]->addAttribute("vertNor");
-
-		programs["material"] = std::make_shared<Program>();
-		programs["material"]->setVerbose(true);
-		programs["material"]->setShaderNames(resourceDir + "/phong_vert_shader.glsl",
-    										 resourceDir + "/phong_frag_shader.glsl");
-		programs["material"]->init();
-		programs["material"]->addUniform("P");
-		programs["material"]->addUniform("V");
-		programs["material"]->addUniform("M");
-		programs["material"]->addUniform("lightPos");
-		//programs["material"]->addUniform("lightDir");
-		programs["material"]->addUniform("MatAmb");
-		programs["material"]->addUniform("MatDif");
-		programs["material"]->addUniform("MatSpec");
-		programs["material"]->addUniform("shine");
-		programs["material"]->addAttribute("vertPos");
-		programs["material"]->addAttribute("vertNor");
 
 		programs["texture"] = std::make_shared<Program>();
 		programs["texture"]->setVerbose(true);
@@ -286,18 +219,6 @@ public:
 		programs["texture"]->addAttribute("vertNor");
 		programs["texture"]->addAttribute("vertTex");
 
-		programs["gblur"] = std::make_shared<Program>();
-		programs["gblur"]->setVerbose(true);
-		programs["gblur"]->setShaderNames(resourceDir + "/gblur_vert_shader.glsl",
-    							  		  resourceDir + "/gblur_frag_shader.glsl");
-		programs["gblur"]->init();
-		programs["gblur"]->addUniform("uTexture");
-		programs["gblur"]->addUniform("P");
-		programs["gblur"]->addUniform("V");
-		programs["gblur"]->addUniform("M");
-		programs["gblur"]->addAttribute("vertPos");
-		programs["gblur"]->addAttribute("vertNor");
-		programs["gblur"]->addAttribute("vertTex");
 	}
 
 	void render()
@@ -327,26 +248,11 @@ public:
 		}
 		M->loadIdentity();
 
-		arwing->draw(programs["texture"], P, M, V, lightPos, texOffset);
+		arwing->draw(programs["texture"], P, M, V, lightPos);
 
+		environment->draw(programs["texture"], P, M, V, lightPos);
 
-		/*
-		programs["texture"]->bind();
-		M->pushMatrix();
-			M->translate(glm::vec3(0, -5, 2));
-			M->scale(glm::vec3(20, 20, 20));
-            M->rotate(glm::radians(80.0), glm::vec3(1, 0, 0));
-			glUniformMatrix4fv(programs["texture"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-			glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-			glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-			glUniform3f(programs["texture"]->getUniform("lightPos"), 5.0, 0.0, 0.0);
-			glUniform2f(programs["texture"]->getUniform("texOffset"), 0.0, texOffset);
-			shapes["quad"][0]->draw(programs["texture"]);
-		M->popMatrix();
-		programs["texture"]->unbind();
-
-		texOffset.y += 0.003;
-		*/
+		environment->scrollForward();
 
 		P->popMatrix();
 	}

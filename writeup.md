@@ -19,3 +19,6 @@ Place to record development activity/thoughts/resources
 ### 11/20 2:49pm
 * Tried to get phong working with textures (material/texture info loaded from mtl files). The best I could do was get some strange coloration -- not sure why :(. Gave up on it for now and reverted to using just textures with no lighting.
 * Frustrated with ^^^, skipping for now. Next thing is to structure the existing code and implement some basic collision detection with the ground.
+
+### 11/20 10:44pm
+* Factored out arwing into its own class. Surprisingly went without a hitch.

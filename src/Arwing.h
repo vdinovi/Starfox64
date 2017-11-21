@@ -1,3 +1,7 @@
+#pragma once
+#ifndef FINAL_471_ARWING_H_INCLUDED
+#define FINAL_471_ARWING_H_INCLUDED
+
 #include <iostream>
 #include <vector>
 #include "Shape.h"
@@ -20,8 +24,7 @@ public:
             Attributes (vertPos, vertNor, vertTex) have been set
     */
     void draw(const std::shared_ptr<Program> prog, const std::shared_ptr<MatrixStack> P,
-              const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos,
-              const glm::vec2& texOffset);
+              const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos);
 
     void pitchUp(int action);
     void pitchDown(int action);
@@ -40,3 +43,5 @@ private:
 	double yaw = 0.0;
 	double pitch = 0.0;
 };
+
+#endif // FINAL_471_ARWING_H_INCLUDED
