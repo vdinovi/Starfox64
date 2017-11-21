@@ -143,8 +143,10 @@ void Arwing::advance() {
         break;
     }
 
-    position.x = glm::clamp(position.x + ARWING_MOVE_SPEED*glm::sin(glm::radians(yaw)), -BOUND, BOUND);
-    position.y = glm::clamp(position.y + ARWING_MOVE_SPEED*-glm::sin(glm::radians(pitch)), -BOUND, BOUND);
+    position.x = glm::clamp(position.x + ARWING_MOVE_SPEED*glm::sin(glm::radians(yaw)),
+                            -ARWING_SCREEN_BOUND, ARWING_SCREEN_BOUND);
+    position.y = glm::clamp(position.y + ARWING_MOVE_SPEED*-glm::sin(glm::radians(pitch)),
+                             -ARWING_SCREEN_BOUND, ARWING_SCREEN_BOUND);
 }
 
 

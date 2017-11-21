@@ -12,7 +12,7 @@
 #define ARWING_MOVE_SPEED 0.5
 #define ARWING_TURN_RATE 2.0
 #define ARWING_MAX_TURN 45.0
-#define BOUND 5.0 // @TODO rename -- more specific
+#define ARWING_SCREEN_BOUND 5.0 // @TODO rename -- more specific
 
 class Arwing {
 
