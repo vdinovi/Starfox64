@@ -22,3 +22,4 @@ Place to record development activity/thoughts/resources
 
 ### 11/20 10:44pm
 * Factored out arwing into its own class. Surprisingly went without a hitch.
+* Factored out environment code into its own class. 
