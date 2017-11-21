@@ -9,6 +9,8 @@
 #include "MatrixStack.h"
 #include "WindowManager.h"
 #include "Shape.h"
+#include "Arwing.h"
+#include "common.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,8 +33,6 @@ public:
 	std::map<std::string, std::vector<std::shared_ptr<Shape>>> shapes;
 	std::map<std::string, GLuint> textures;
 
-
-
 	// Camera
 	bool cameraUnlock = false;
 	bool mouseDown = false;
@@ -41,13 +41,12 @@ public:
 	glm::vec2 lookDir = glm::vec2(glm::radians(90.0), 0.0);
 	glm::vec2 newLook = lookDir;
 
-	// arwing
-	glm::vec3 arwingPos = glm::vec3(0.0, 0.0, 5.0);
-	double yaw = 0.0;
-	double pitch = 0.0;
+	// Arwing
+	std::shared_ptr<Arwing> arwing;
 
-	// Ground
-	float texOffset = 0;
+	// Environment
+	glm::vec3 lightPos = {1.0, 1.0, 1.0};
+	glm::vec2 texOffset = {0.0, 0.0};
 
 
 
@@ -106,42 +105,34 @@ public:
 		// Arwing Controls
 		if (key == GLFW_KEY_LEFT) {
 			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				//yaw = glm::min(yaw + TURN_RATE, 40.0);
-				yaw = 40;
-				arwingPos.x = glm::max(arwingPos.x - glm::cos(yaw), -1.0);
+				arwing->yawLeft(KEY_PRESS);
 			}
 			else {
-				yaw = 0;
+				arwing->yawLeft(KEY_RELEASE);
 			}
 		}
 		if (key == GLFW_KEY_RIGHT) {
 			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				//yaw = glm::max(yaw - TURN_RATE, -40.0);
-				yaw = -40;
-				arwingPos.x = glm::min(arwingPos.x + glm::cos(yaw), 1.0);
+				arwing->yawRight(KEY_PRESS);
 			}
 			else {
-				yaw = 0;
+				arwing->yawRight(KEY_RELEASE);
 			}
 		}
 		if (key == GLFW_KEY_UP) {
 			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				//pitch = glm::max(pitch - TURN_RATE, -40.0);
-				pitch = -40;
-				arwingPos.y = glm::max(arwingPos.y - glm::cos(pitch), -1.0);
+				arwing->pitchUp(KEY_PRESS);
 			}
 			else {
-				pitch = 0;
+				arwing->pitchUp(KEY_RELEASE);
 			}
 		}
 		if (key == GLFW_KEY_DOWN) {
 			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				//pitch = glm::min(pitch + TURN_RATE, 40.0);
-				pitch = 40;
-				arwingPos.y = glm::min(arwingPos.y + glm::cos(pitch), 1.0);
+				arwing->pitchDown(KEY_PRESS);
 			}
 			else {
-				pitch = 0;
+				arwing->pitchDown(KEY_RELEASE);
 			}
 		}
 	}
@@ -188,33 +179,11 @@ public:
 		std::string err;
 		std::string basePath = resourceDir + "/";
 
-		// Load Arwing
-		bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "arwing.obj").c_str(), basePath.c_str());
-		if (!rc) {
-			std::cerr << err << std::endl;
-		}
-		else {
-			std::string objName("arwing");
-			for (int i = 0; i < TOshapes.size(); ++i) {
-				std::shared_ptr<Shape> shape = std::make_shared<Shape>();
-				shape->createShape(TOshapes[i]);
-				shape->measure();
-				shape->init();
-				shapes[objName].push_back(shape);
-				if (TOshapes[i].mesh.material_ids[0] >= 0) {
-					shape->loadMaterial(TOmats[TOshapes[i].mesh.material_ids[0]], basePath);
-					shape->useMaterial = true;
-				}
-				else {
-					shape->setMaterial(textures["white"], glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.5, 0.5, 0.5),
-									   glm::vec3(0.5, 0.5, 0.5), 1.0);
-					shape->useMaterial = true;
-				}
-			}
-		}
+		arwing = std::make_shared<Arwing>(basePath);
+		arwing->measure();
 
 		// Load Quad
-		rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "quad.obj").c_str(), basePath.c_str());
+		bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "quad.obj").c_str(), basePath.c_str());
 		if (!rc) {
 			std::cerr << err << std::endl;
 		}
@@ -358,45 +327,10 @@ public:
 		}
 		M->loadIdentity();
 
-
-		glm::vec3 arwingMin = Shape::getMin(shapes["arwing"]);
-		glm::vec3 arwingMax = Shape::getMax(shapes["arwing"]);
-
-		glm::vec3 arwingTrans = arwingMin + 0.5f * (arwingMax - arwingMin);
-		float arwingScale = 0;
-		if (arwingMax.x > arwingMax.y && arwingMax.x > arwingMax.z)
-		{
-			arwingScale = 2.0 / (arwingMax.x - arwingMin.x);
-		}
-		else if (arwingMax.y > arwingMax.x && arwingMax.y > arwingMax.z)
-		{
-			arwingScale = 2.0 / (arwingMax.y - arwingMin.y);
-		}
-		else
-		{
-			arwingScale = 2.0 / (arwingMax.z - arwingMin.z);
-		}
-
-		// Draw arwing parts
-		programs["texture"]->bind();
-		for (auto shape = shapes["arwing"].begin(); shape != shapes["arwing"].end(); ++shape) {
-			M->pushMatrix();
-				M->translate(glm::vec3(arwingPos.x, arwingPos.y, arwingPos.z));
-				M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
-				M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
-				M->scale(arwingScale);
-				M->translate(-1.0f*arwingTrans);
-				glUniformMatrix4fv(programs["texture"]->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-				glUniformMatrix4fv(programs["texture"]->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-				glUniformMatrix4fv(programs["texture"]->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-				glUniform3f(programs["texture"]->getUniform("lightPos"), 5.0, 0.0, 0.0);
-				glUniform2f(programs["texture"]->getUniform("texOffset"), 0.0, 0.0);
-				(*shape)->draw(programs["texture"]);
-			M->popMatrix();
-		}
-		programs["texture"]->unbind();
+		arwing->draw(programs["texture"], P, M, V, lightPos, texOffset);
 
 
+		/*
 		programs["texture"]->bind();
 		M->pushMatrix();
 			M->translate(glm::vec3(0, -5, 2));
@@ -411,7 +345,8 @@ public:
 		M->popMatrix();
 		programs["texture"]->unbind();
 
-		texOffset += 0.003;
+		texOffset.y += 0.003;
+		*/
 
 		P->popMatrix();
 	}
