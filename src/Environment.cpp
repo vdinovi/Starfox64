@@ -50,3 +50,7 @@ void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_pt
 	M->popMatrix();
 	prog->unbind();
 }
+
+void Environment::advance() {
+	texOffset.y += TEX_SCROLL_RATE;
+}

@@ -16,11 +16,12 @@ public:
     Environment(std::string resourceDir);
     //~Environment();
 
-    void scrollForward() { texOffset.y += TEX_SCROLL_RATE; };
 
     void draw(const std::shared_ptr<Program> prog, const std::shared_ptr<MatrixStack> P,
               const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos);
 
+    // Code to advance environemtn. Called on each iteration of the game loop
+    void advance();
 
 
 private:

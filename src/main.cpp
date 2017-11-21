@@ -20,7 +20,7 @@
 
 
 #define TURN_RATE 10
-#define MOVE_SPEED 0.75
+#define CAMERA_MOVE_SPEED 0.75
 
 #define PI 3.14159
 
@@ -74,88 +74,78 @@ public:
 		if (cameraUnlock) {
 			if(key == GLFW_KEY_W) {
 				cameraPos += glm::vec3(
-					MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
-					MOVE_SPEED*sin(lookDir[1]),
-					MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
+					CAMERA_MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
+					CAMERA_MOVE_SPEED*sin(lookDir[1]),
+					CAMERA_MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
 				);
 			}
         	else if(key == GLFW_KEY_S) {
 				cameraPos -= glm::vec3(
-					MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
-					MOVE_SPEED*sin(lookDir[1]),
-					MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
+					CAMERA_MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
+					CAMERA_MOVE_SPEED*sin(lookDir[1]),
+					CAMERA_MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
 				);
 			}
         	else if( key == GLFW_KEY_A) {
 				glm::vec3 scaledLook = glm::vec3(
-					MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
-					MOVE_SPEED*sin(lookDir[1]),
-					MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
+					CAMERA_MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
+					CAMERA_MOVE_SPEED*sin(lookDir[1]),
+					CAMERA_MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
 				);
 				cameraPos -= glm::cross(scaledLook, glm::vec3(0, 1, 0));
 			}
        		else if( key == GLFW_KEY_D) {
 				glm::vec3 scaledLook = glm::vec3(
-					MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
-					MOVE_SPEED*sin(lookDir[1]),
-					MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
+					CAMERA_MOVE_SPEED*cos(lookDir[1])*cos(lookDir[0]),
+					CAMERA_MOVE_SPEED*sin(lookDir[1]),
+					CAMERA_MOVE_SPEED*cos(lookDir[1])*sin(lookDir[0])
 				);
 				cameraPos += glm::cross(scaledLook, glm::vec3(0, 1, 0));
 			}
 		}
 
 		// Arwing Controls
-		if (key == GLFW_KEY_LEFT) {
-			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				arwing->yawLeft(KEY_PRESS);
-			}
-			else {
-				arwing->yawLeft(KEY_RELEASE);
-			}
+		if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+			arwing->yawLeft(KEY_PRESS);
 		}
-		if (key == GLFW_KEY_RIGHT) {
-			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				arwing->yawRight(KEY_PRESS);
-			}
-			else {
-				arwing->yawRight(KEY_RELEASE);
-			}
+		if (key == GLFW_KEY_LEFT && action == GLFW_RELEASE) {
+			arwing->yawLeft(KEY_RELEASE);
 		}
-		if (key == GLFW_KEY_UP) {
-			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				arwing->pitchUp(KEY_PRESS);
-			}
-			else {
-				arwing->pitchUp(KEY_RELEASE);
-			}
+		if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+			arwing->yawRight(KEY_PRESS);
 		}
-		if (key == GLFW_KEY_DOWN) {
-			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				arwing->pitchDown(KEY_PRESS);
-			}
-			else {
-				arwing->pitchDown(KEY_RELEASE);
-			}
+		if (key == GLFW_KEY_RIGHT && action == GLFW_RELEASE) {
+			arwing->yawRight(KEY_RELEASE);
+		}
+		if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+			arwing->pitchUp(KEY_PRESS);
+		}
+		if (key == GLFW_KEY_UP && action == GLFW_RELEASE) {
+			arwing->pitchUp(KEY_RELEASE);
+		}
+		if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+			arwing->pitchDown(KEY_PRESS);
+		}
+		if (key == GLFW_KEY_DOWN && action == GLFW_RELEASE) {
+			arwing->pitchDown(KEY_RELEASE);
 		}
 	}
 
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
 	{
-		if (action == GLFW_PRESS)
-        {
+		if (action == GLFW_PRESS) {
 			glfwGetCursorPos(window, &(initialClick[0]), &(initialClick[1]));
-            mouseDown = true;
-        }
-        if (action == GLFW_RELEASE)
-        {
+			mouseDown = true;
+		}
+		if (action == GLFW_RELEASE) {
 			lookDir = newLook;
-           	mouseDown = false;
-        }
+			mouseDown = false;
+		}
 	}
 
 	void scrollCallback(GLFWwindow *window, double dX, double dY)
-    {
-    }
+	{
+	}
 
 	void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
 	{
@@ -249,10 +239,10 @@ public:
 		M->loadIdentity();
 
 		arwing->draw(programs["texture"], P, M, V, lightPos);
+		arwing->advance();
 
 		environment->draw(programs["texture"], P, M, V, lightPos);
-
-		environment->scrollForward();
+		environment->advance();
 
 		P->popMatrix();
 	}
