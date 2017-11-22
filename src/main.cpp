@@ -51,7 +51,7 @@ public:
 	std::shared_ptr<Environment> environment;
 
 	// Light
-	glm::vec3 lightPos = {1.0, 1.0, 1.0};
+	glm::vec3 lightPos = {1.0, 0.0, 0.0};
 
 
 
@@ -200,11 +200,13 @@ public:
 		programs["texture"]->addUniform("P");
 		programs["texture"]->addUniform("V");
 		programs["texture"]->addUniform("M");
-		programs["texture"]->addUniform("lightPos");
-		//programs["texture"]->addUniform("lightDir");
-		programs["texture"]->addUniform("MatAmb");
-		programs["texture"]->addUniform("MatDif");
-		programs["texture"]->addUniform("MatSpec");
+		programs["texture"]->addUniform("lightPosition");
+		programs["texture"]->addUniform("La");
+		programs["texture"]->addUniform("Ld");
+		programs["texture"]->addUniform("Ls");
+		programs["texture"]->addUniform("Ka");
+		programs["texture"]->addUniform("Kd");
+		programs["texture"]->addUniform("Ks");
 		programs["texture"]->addUniform("Shine");
 		programs["texture"]->addUniform("texOffset");
 		programs["texture"]->addAttribute("vertPos");

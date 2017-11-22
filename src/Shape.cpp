@@ -183,9 +183,9 @@ void Shape::draw(const shared_ptr<Program> prog) const
 
 	if (useMaterial) {
 		CHECKED_GL_CALL(glBindTexture(GL_TEXTURE_2D, material.texId));
-		CHECKED_GL_CALL(glUniform3f(prog->getUniform("MatAmb"), material.ambient[0], material.ambient[1], material.ambient[2]));
-		CHECKED_GL_CALL(glUniform3f(prog->getUniform("MatDif"), material.diffuse[0], material.diffuse[1], material.diffuse[2]));
-		CHECKED_GL_CALL(glUniform3f(prog->getUniform("MatSpec"), material.specular[0], material.specular[1], material.specular[2]));
+		CHECKED_GL_CALL(glUniform3f(prog->getUniform("Ka"), material.ambient[0], material.ambient[1], material.ambient[2]));
+		CHECKED_GL_CALL(glUniform3f(prog->getUniform("Kd"), material.diffuse[0], material.diffuse[1], material.diffuse[2]));
+		CHECKED_GL_CALL(glUniform3f(prog->getUniform("Ks"), material.specular[0], material.specular[1], material.specular[2]));
 		CHECKED_GL_CALL(glUniform1f(prog->getUniform("Shine"), material.shine));
 	}
 

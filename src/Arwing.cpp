@@ -66,7 +66,10 @@ void Arwing::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Mat
 			glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 			glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-			glUniform3f(prog->getUniform("lightPos"), lightPos.x, lightPos.y, lightPos.z);
+			glUniform3f(prog->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
+			glUniform3f(prog->getUniform("La"), 1, 1, 1);
+			glUniform3f(prog->getUniform("Ld"), 1, 1, 1);
+			glUniform3f(prog->getUniform("Ls"), 1, 1, 1);
 			glUniform2f(prog->getUniform("texOffset"), 0.0, 0.0);
 			(*shape)->draw(prog);
         }
