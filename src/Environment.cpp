@@ -80,7 +80,7 @@ void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_pt
 	// Draw Sky
 	M->pushMatrix();
 		M->translate(glm::vec3(0, SKY_HEIGHT/3, 60));
-		M->scale(glm::vec3(SKY_WIDTH, -SKY_HEIGHT, 1));
+		M->scale(glm::vec3(SKY_WIDTH, SKY_HEIGHT, 1));
         for (auto shape = skyShapes.begin(); shape != skyShapes.end(); ++shape) {
 	        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 	        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
