@@ -118,16 +118,16 @@ public:
 			arwing->yawRight(KEY_RELEASE);
 		}
 		if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-			arwing->pitchUp(KEY_PRESS);
-		}
-		if (key == GLFW_KEY_UP && action == GLFW_RELEASE) {
-			arwing->pitchUp(KEY_RELEASE);
-		}
-		if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
 			arwing->pitchDown(KEY_PRESS);
 		}
-		if (key == GLFW_KEY_DOWN && action == GLFW_RELEASE) {
+		if (key == GLFW_KEY_UP && action == GLFW_RELEASE) {
 			arwing->pitchDown(KEY_RELEASE);
+		}
+		if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+			arwing->pitchUp(KEY_PRESS);
+		}
+		if (key == GLFW_KEY_DOWN && action == GLFW_RELEASE) {
+			arwing->pitchUp(KEY_RELEASE);
 		}
 	}
 
@@ -222,12 +222,21 @@ public:
 
 		auto P = std::make_shared<MatrixStack>();
 		auto M = std::make_shared<MatrixStack>();
-		glm::vec3 lookV = glm::vec3(
+		/*glm::vec3 lookV = glm::vec3(
 			cos(newLook[1])*cos(newLook[0]),
 			sin(newLook[1]),
 			cos(newLook[1])*sin(newLook[0])
 		);
-		glm::mat4 V = glm::lookAt(cameraPos, cameraPos + lookV , glm::vec3(0, 1, 0));
+		glm::mat4 V = glm::lookAt(cameraPos + 0.5 * arwing->position.x, cameraPos + lookV , glm::vec3(0, 1, 0));
+		*/
+		glm::vec3 newCameraPos = cameraPos + glm::vec3(0.5*arwing->position.x, 0.5*arwing->position.y, 0);
+		glm::vec3 newCameraLook = glm::vec3(
+			0.5*cos(glm::radians(arwing->yaw)),
+			0.5*cos(glm::radians(arwing->pitch)),
+			arwing->position.z
+		);
+
+		glm::mat4 V = glm::lookAt(newCameraPos, newCameraPos + newCameraLook, glm::vec3(0, 1, 0));
 
 		P->pushMatrix();
 		if (width > height) {

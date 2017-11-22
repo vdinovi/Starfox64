@@ -39,6 +39,9 @@ public:
     void yawLeft(int action);
     void yawRight(int action);
 
+	glm::vec3 position = glm::vec3(0.0, 0.0, 3.0);
+	double yaw = 0.0;
+	double pitch = 0.0;
 
 private:
     Arwing(Arwing const &a) = delete;
@@ -47,11 +50,7 @@ private:
     glm::vec3 trans;
     float scale;
 
-	glm::vec3 position = glm::vec3(0.0, 0.0, 3.0);
 	std::vector<int> turning = {0, 0};
-	double yaw = 0.0;
-	double pitch = 0.0;
-
  };
 
 #endif // FINAL_471_ARWING_H_INCLUDED
