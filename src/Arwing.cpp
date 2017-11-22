@@ -59,7 +59,7 @@ void Arwing::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Mat
 		M->translate(glm::vec3(position.x, position.y, position.z));
 		M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
 		M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
-		M->scale(glm::vec3(2.0, 2.0, 2.0));
+		M->scale(glm::vec3(ARWING_SCALE, ARWING_SCALE, ARWING_SCALE));
 		M->scale(scale);
 		M->translate(-1.0f*trans);
         for (auto shape = shapes.begin(); shape != shapes.end(); ++shape) {
@@ -122,10 +122,10 @@ void Arwing::advance() {
             (yaw > 0 ? glm::max(yaw - 2*ARWING_TURN_RATE, 0.0) : 0.0);
         break;
     case -1: // turning left
-        yaw = glm::min(yaw + ARWING_TURN_RATE, ARWING_MAX_TURN);
+        yaw = glm::min(yaw + ARWING_TURN_RATE, ARWING_MAX_YAW);
         break;
     case 1: // turning right
-        yaw = glm::max(yaw - ARWING_TURN_RATE, -ARWING_MAX_TURN);
+        yaw = glm::max(yaw - ARWING_TURN_RATE, -ARWING_MAX_YAW);
         break;
     }
     // Handle pitch
@@ -136,17 +136,17 @@ void Arwing::advance() {
             (pitch > 0 ? glm::max(pitch - 2*ARWING_TURN_RATE, 0.0) : 0.0);
         break;
     case -1: // turning down
-        pitch = glm::min(pitch + ARWING_TURN_RATE, ARWING_MAX_TURN);
+        pitch = glm::min(pitch + ARWING_TURN_RATE, ARWING_MAX_PITCH);
         break;
     case 1: // turning up
-        pitch = glm::max(pitch - ARWING_TURN_RATE, -ARWING_MAX_TURN);
+        pitch = glm::max(pitch - ARWING_TURN_RATE, -ARWING_MAX_PITCH);
         break;
     }
 
     position.x = glm::clamp(position.x + ARWING_MOVE_SPEED*glm::sin(glm::radians(yaw)),
-                            -ARWING_SCREEN_BOUND, ARWING_SCREEN_BOUND);
+                            -AIRSPACE_WIDTH, AIRSPACE_WIDTH);
     position.y = glm::clamp(position.y + ARWING_MOVE_SPEED*-glm::sin(glm::radians(pitch)),
-                             -ARWING_SCREEN_BOUND, ARWING_SCREEN_BOUND);
+                            -AIRSPACE_HEIGHT, AIRSPACE_HEIGHT);
 }
 
 

@@ -21,6 +21,9 @@
 
 #define TURN_RATE 10
 #define CAMERA_MOVE_SPEED 0.75
+#define CAMERA_ORIGIN_Y -(AIRSPACE_HEIGHT/3)
+#define CAMERA_ORIGIN_Z -6.0
+#define CAMERA_FOLLOW 0.6
 
 #define PI 3.14159
 
@@ -38,7 +41,7 @@ public:
 	bool cameraUnlock = false;
 	bool mouseDown = false;
 	std::vector<double> initialClick = { 0.0, 0.0 };
-	glm::vec3 cameraPos = glm::vec3(0.0, 0.0, -5.0);
+	glm::vec3 cameraPos = glm::vec3(0.0, CAMERA_ORIGIN_Y, CAMERA_ORIGIN_Z);
 	glm::vec2 lookDir = glm::vec2(glm::radians(90.0), 0.0);
 	glm::vec2 newLook = lookDir;
 
@@ -61,9 +64,8 @@ public:
 		if (key == GLFW_KEY_U && action == GLFW_PRESS) {
 			if (cameraUnlock) {
 				cameraUnlock = false;
-				cameraPos = glm::vec3(0.0, 0.0, -5.0);
+				cameraPos = glm::vec3(0.0, CAMERA_ORIGIN_Y, CAMERA_ORIGIN_Z);
 				lookDir = newLook = glm::vec2(glm::radians(90.0), 0.0);
-
 			}
 			else {
 				cameraUnlock = true;
@@ -222,21 +224,25 @@ public:
 
 		auto P = std::make_shared<MatrixStack>();
 		auto M = std::make_shared<MatrixStack>();
-		/*glm::vec3 lookV = glm::vec3(
-			cos(newLook[1])*cos(newLook[0]),
-			sin(newLook[1]),
-			cos(newLook[1])*sin(newLook[0])
-		);
-		glm::mat4 V = glm::lookAt(cameraPos + 0.5 * arwing->position.x, cameraPos + lookV , glm::vec3(0, 1, 0));
-		*/
-		glm::vec3 newCameraPos = cameraPos + glm::vec3(0.5*arwing->position.x, 0.5*arwing->position.y, 0);
-		glm::vec3 newCameraLook = glm::vec3(
-			0.5*cos(glm::radians(arwing->yaw)),
-			0.5*cos(glm::radians(arwing->pitch)),
-			arwing->position.z
-		);
+		glm::mat4 V;
+		if (cameraUnlock) {
+			glm::vec3 lookV = glm::vec3(
+				cos(newLook[1])*cos(newLook[0]),
+				sin(newLook[1]),
+				cos(newLook[1])*sin(newLook[0])
+			);
+			V = glm::lookAt(cameraPos, cameraPos + lookV , glm::vec3(0, 1, 0));
+		}
+		else {
+			glm::vec3 newCameraPos = cameraPos + glm::vec3(0.5*arwing->position.x, 0.5*arwing->position.y, 0);
+			glm::vec3 newCameraLook = glm::vec3(
+				CAMERA_FOLLOW*cos(glm::radians(arwing->yaw-90.0)),
+				CAMERA_FOLLOW*cos(glm::radians(arwing->pitch)),
+				arwing->position.z
+			);
+			V = glm::lookAt(newCameraPos, newCameraPos + newCameraLook, glm::vec3(0, 1, 0));
+		}
 
-		glm::mat4 V = glm::lookAt(newCameraPos, newCameraPos + newCameraLook, glm::vec3(0, 1, 0));
 
 		P->pushMatrix();
 		if (width > height) {

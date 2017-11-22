@@ -36,9 +36,9 @@ void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_pt
     prog->bind();
     // Draw Ground
 	M->pushMatrix();
-		M->translate(glm::vec3(0, -5, 70));
-		M->scale(glm::vec3(50, 1, 80));
-        M->rotate(glm::radians(80.0), glm::vec3(1, 0, 0));
+		M->translate(glm::vec3(0, -(AIRSPACE_HEIGHT+1), GROUND_DEPTH));
+		M->scale(glm::vec3(GROUND_WIDTH, 1, GROUND_DEPTH));
+        M->rotate(glm::radians(90.0), glm::vec3(1, 0, 0));
         for (auto shape = groundShapes.begin(); shape != groundShapes.end(); ++shape) {
 	        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 	        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));

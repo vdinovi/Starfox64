@@ -10,6 +10,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #define TEX_SCROLL_RATE 0.003
+#define GROUND_WIDTH 30
+#define GROUND_DEPTH 30
 
 class Environment {
 public:
