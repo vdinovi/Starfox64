@@ -99,3 +99,10 @@ void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_pt
 void Environment::advance() {
 	texOffset.y += TEX_SCROLL_RATE;
 }
+
+
+/*
+bool Environment::checkGroundCollision(glm::vec3 position, double radius) {
+	return position.y - radius <= groundHeight;
+}
+*/

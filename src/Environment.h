@@ -6,6 +6,7 @@
 #include <vector>
 #include "Shape.h"
 #include "Program.h"
+#include "common.h"
 #include "MatrixStack.h"
 #include <glm/gtc/type_ptr.hpp>
 
@@ -29,6 +30,8 @@ public:
     // Code to advance environment. Called on each iteration of the game loop
     void advance();
 
+    //bool checkGroundCollision(glm::vec3 position, double radius);
+
 
 private:
     Environment(Environment const &a) = delete;
@@ -36,6 +39,7 @@ private:
     std::vector<std::shared_ptr<Shape>> groundShapes;
     std::vector<std::shared_ptr<Shape>> skyShapes;
     std::map<std::string, unsigned> textures;
+    //float groundHeight = -(AIRSPACE_HEIGHT+1);
 
 };
 

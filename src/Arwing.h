@@ -10,6 +10,7 @@
 #include "MatrixStack.h"
 #include <glm/gtc/type_ptr.hpp>
 
+#define ARWING_HITSPHERE_RADIUS 2.0
 #define ARWING_MOVE_SPEED 0.5
 #define ARWING_TURN_RATE 2.0
 #define ARWING_MAX_YAW 45.0

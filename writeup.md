@@ -22,5 +22,11 @@ Place to record development activity/thoughts/resources
 
 ### 11/20 10:44pm
 * Factored out arwing into its own class. Surprisingly went without a hitch.
-* Factored out environment code into its own class. 
+* Factored out environment code into its own class.
 * Reworked ship movement and now it looks GREAT! Smooth as it could be.
+
+
+### 11/22 1:00am
+* Fixed ship controls and made camera follow ship.
+* Reworked environment and added backdrop.
+* Cleaned up a lot of code.
