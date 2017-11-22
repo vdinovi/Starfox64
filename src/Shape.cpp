@@ -28,7 +28,7 @@ void Shape::loadMaterial(tinyobj::material_t & TOmat, std::string resourceDir) {
 		stbi_image_free(data);
 	}
 	else {
-		std::cout << "Error loading arwing texture\n";
+		std::cout << "Error loading texture\n";
 	}
 	material.ambient = glm::vec3(TOmat.ambient[0], TOmat.ambient[1], TOmat.ambient[2]),
 	material.diffuse = glm::vec3(TOmat.diffuse[0], TOmat.diffuse[1], TOmat.diffuse[2]),

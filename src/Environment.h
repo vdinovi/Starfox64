@@ -13,6 +13,10 @@
 #define GROUND_WIDTH 30
 #define GROUND_DEPTH 30
 
+#define SKY_WIDTH 80
+#define SKY_HEIGHT 40
+
+
 class Environment {
 public:
     Environment(std::string resourceDir);
@@ -22,7 +26,7 @@ public:
     void draw(const std::shared_ptr<Program> prog, const std::shared_ptr<MatrixStack> P,
               const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos);
 
-    // Code to advance environemtn. Called on each iteration of the game loop
+    // Code to advance environment. Called on each iteration of the game loop
     void advance();
 
 
@@ -30,7 +34,7 @@ private:
     Environment(Environment const &a) = delete;
 	glm::vec2 texOffset = {0.0, 0.0};
     std::vector<std::shared_ptr<Shape>> groundShapes;
-    // sky shapes? mountain shapes?
+    std::vector<std::shared_ptr<Shape>> skyShapes;
 
 };
 

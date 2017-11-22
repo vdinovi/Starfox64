@@ -1,7 +1,7 @@
 # Blender MTL File: ''
 # Material Count: 1
 
-newmtl quad
+newmtl ground
 Ns 96.078431
 Ka 0.000000 0.000000 0.000000
 Kd 1.00000 1.10000 1.00000

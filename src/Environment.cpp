@@ -8,14 +8,14 @@ Environment::Environment(std::string resourceDir) {
 	std::string err;
 	std::string basePath = resourceDir + "/";
 
-	bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "quad.obj").c_str(), basePath.c_str());
+	bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "ground.obj").c_str(), basePath.c_str());
 	if (!rc) {
 		std::cerr << err << std::endl;
 	}
 	else {
 		for (int i = 0; i < TOshapes.size(); ++i) {
 			std::shared_ptr<Shape> shape = std::make_shared<Shape>();
-			shape->createShape(TOshapes[0]);
+			shape->createShape(TOshapes[i]);
 			shape->measure();
 			shape->init();
             groundShapes.push_back(shape);
@@ -29,6 +29,31 @@ Environment::Environment(std::string resourceDir) {
 			}
 		}
     }
+	std::vector<tinyobj::shape_t> TOshapes1;
+	std::vector<tinyobj::material_t> TOmats1;
+
+	rc = tinyobj::LoadObj(TOshapes1, TOmats1, err, (basePath + "sky.obj").c_str(), basePath.c_str());
+	if (!rc) {
+		std::cerr << err << std::endl;
+	}
+	else {
+		for (int i = 0; i < TOshapes1.size(); ++i) {
+			std::shared_ptr<Shape> shape = std::make_shared<Shape>();
+			shape->createShape(TOshapes1[i]);
+			shape->measure();
+			shape->init();
+            skyShapes.push_back(shape);
+			if (TOshapes1[i].mesh.material_ids[0] >= 0) {
+				shape->loadMaterial(TOmats1[TOshapes1[i].mesh.material_ids[0]], basePath);
+				shape->useMaterial = true;
+			}
+			else {
+                // materials must be available
+                std::cout << "Error loading materials" << std::endl;
+			}
+		}
+    }
+
 }
 
 void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<MatrixStack> P,
@@ -48,6 +73,21 @@ void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_pt
 		    (*shape)->draw(prog);
         }
 	M->popMatrix();
+
+	// Draw Sky
+	M->pushMatrix();
+		M->translate(glm::vec3(0, SKY_HEIGHT/3, 60));
+		M->scale(glm::vec3(SKY_WIDTH, -SKY_HEIGHT, 1));
+        for (auto shape = skyShapes.begin(); shape != skyShapes.end(); ++shape) {
+	        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+	        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+	        glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+		    glUniform3f(prog->getUniform("lightPos"), 5.0, 0.0, 0.0);
+		    glUniform2f(prog->getUniform("texOffset"), 0.0, 0.0);
+		    (*shape)->draw(prog);
+        }
+	M->popMatrix();
+
 	prog->unbind();
 }
 
