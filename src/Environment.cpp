@@ -53,7 +53,6 @@ Environment::Environment(std::string resourceDir) {
 			}
 		}
     }
-
 }
 
 void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<MatrixStack> P,

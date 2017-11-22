@@ -35,6 +35,7 @@ private:
 	glm::vec2 texOffset = {0.0, 0.0};
     std::vector<std::shared_ptr<Shape>> groundShapes;
     std::vector<std::shared_ptr<Shape>> skyShapes;
+    std::map<std::string, unsigned> textures;
 
 };
 

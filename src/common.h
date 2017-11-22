@@ -11,4 +11,10 @@
 #define AIRSPACE_HEIGHT 10.0
 #define AIRSPACE_WIDTH 20.0
 
+struct vao_t {
+    unsigned vaoId;
+    unsigned vboId;
+
+};
+
 #endif // FINAL_471_COMMON_H_INCLUDED
