@@ -20,8 +20,7 @@ Arwing::Arwing(std::string resourceDir) {
             shape->init();
             shapes.push_back(shape);
             if (TOshapes[i].mesh.material_ids[0] >= 0) {
-                shape->loadMaterial(TOmats[TOshapes[i].mesh.material_ids[0]],
-                                    basePath);
+                shape->loadMaterial(TOmats[TOshapes[i].mesh.material_ids[0]], basePath);
                 shape->useMaterial = true;
             }
             else {
@@ -150,7 +149,9 @@ void Arwing::advance() {
                             -AIRSPACE_WIDTH, AIRSPACE_WIDTH);
     position.y = glm::clamp(position.y + ARWING_MOVE_SPEED*-glm::sin(glm::radians(pitch)),
                             -AIRSPACE_HEIGHT, AIRSPACE_HEIGHT);
+    //std::cout << position.x << ", " << position.y << ", " << position.z << std::endl;
 }
+
 
 
 

@@ -4,20 +4,21 @@
 #include <vector>
 #include <map>
 #include <cstdlib>
+#include <ctime>
+
 #include "GLSL.h"
 #include "Program.h"
 #include "MatrixStack.h"
 #include "WindowManager.h"
 #include "Shape.h"
-#include "Arwing.h"
-#include "Environment.h"
-#include "common.h"
-
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include "stb_image.h"
 
+#include "common.h"
+#include "Arwing.h"
+#include "Enemy.h"
+#include "Environment.h"
 
 #define TURN_RATE 10
 #define CAMERA_MOVE_SPEED 0.75
@@ -49,6 +50,9 @@ public:
 	std::shared_ptr<Arwing> arwing;
 	// Environment
 	std::shared_ptr<Environment> environment;
+	// Enemy
+	std::shared_ptr<Enemy> enemy;
+	clock_t spawnTimer;
 
 	// Light
 	glm::vec3 lightPos = {1.0, 0.0, 0.0};
@@ -176,12 +180,21 @@ public:
 		arwing = std::make_shared<Arwing>(basePath);
 		arwing->measure();
 
+		enemy = std::make_shared<Enemy>(basePath);
+		enemy->measure();
+
 		environment = std::make_shared<Environment>(basePath);
 		//environment->measure();
 	}
 
 	void initTex(const std::string& resourceDir)
 	{
+	}
+
+	void initGame()
+	{
+		spawnTimer = clock()/10000.0; // start spawn timer
+		//std::cout << "Time: " << spawnTimer << std::endl;
 	}
 
 	void initProg(const std::string& resourceDir)
@@ -255,11 +268,27 @@ public:
 		}
 		M->loadIdentity();
 
+		// ARWING
 		arwing->draw(programs["texture"], P, M, V, lightPos);
 		arwing->advance();
 
+		// ENVIRONMENT
 		environment->draw(programs["texture"], P, M, V, lightPos);
 		environment->advance();
+
+		// ENEMIES
+		enemy->draw(programs["texture"], P, M, V, lightPos);
+		if (enemy->checkCollisions(arwing->position, ARWING_HITSPHERE_RADIUS)) {
+			//shtd::cout << "Arwing collided with an enenemy!" << std::endl;
+		}
+
+		float t = clock()/10000.0 - spawnTimer;
+		if (t >= ENEMY_SPAWN_CD) {
+			//std::cout << "Time: " << t << std::endl;
+			spawnTimer = clock()/10000.0;
+			enemy->spawnEnemy();
+		}
+
 
 		P->popMatrix();
 	}
@@ -282,6 +311,7 @@ int main(int argc, char **argv)
 	application->initProg(shaderDir);
 	application->initTex(resourceDir);
 	application->initGeom(resourceDir);
+	application->initGame();
 
 	while(! glfwWindowShouldClose(windowManager->getHandle()))
 	{

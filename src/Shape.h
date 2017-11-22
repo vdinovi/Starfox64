@@ -14,7 +14,6 @@ class Program;
 
 struct Material
 {
-	unsigned texId;
 	glm::vec3 ambient;
 	glm::vec3 diffuse;
 	glm::vec3 specular;
@@ -27,17 +26,29 @@ class Shape
 public:
 
 	void createShape(tinyobj::shape_t & shape);
+	void createShape(std::vector<float>& positions, std::vector<float>& normals,
+					 std::vector<float>& texcoords, std::vector<unsigned>& indices);
+	void createShape(std::vector<float>& positions, std::vector<float>& normals, std::vector<unsigned>& indices);
+
+	// Load in material properties and texture from mtl
 	void loadMaterial(tinyobj::material_t & material, std::string resourceDir);
-	void setMaterial(unsigned texId, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float shine);
+	// Load in specific texture
+	void loadTexture(std::string filepath);
+	// Set material properties
+	void setMaterial(float ambient[], float diffuse[], float specular[], float shine);
+	// Initialize shape
 	void init();
+	// Get min and max of shape
 	void measure();
+	// draw texture to current fbo using specified program
 	void draw(const std::shared_ptr<Program> prog) const;
 
+	// Obtain the min and max positions from a collection of shapes
 	static glm::vec3 getMax(std::vector<std::shared_ptr<Shape>> shapes);
 	static glm::vec3 getMin(std::vector<std::shared_ptr<Shape>> shapes);
 
-	glm::vec3 min = glm::vec3(0);
-	glm::vec3 max = glm::vec3(0);
+	glm::vec3 min = glm::vec3(0, 0, 0);
+	glm::vec3 max = glm::vec3(0, 0, 0);
 	bool useMaterial = false;
 	Material material;
 
@@ -52,6 +63,7 @@ private:
 	unsigned int norBufID = 0;
 	unsigned int texBufID = 0;
 	unsigned int vaoID = 0;
+	unsigned int texId = 0;
 };
 
 #endif // FINAL_471_SHAPE_H_INCLUDED
