@@ -30,3 +30,7 @@ Place to record development activity/thoughts/resources
 * Fixed ship controls and made camera follow ship.
 * Reworked environment and added backdrop.
 * Cleaned up a lot of code.
+
+### 11/22 3:00pm
+* Added random-spawn enemy arwings that linear-interp towards the camera
+* Added basic collision detection between the Arwing and ground/enemies
