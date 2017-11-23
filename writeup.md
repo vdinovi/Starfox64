@@ -40,3 +40,6 @@ Place to record development activity/thoughts/resources
 * Added ship projectiles which look and feel close the the original game
 * Added projectile-enemy collision detection and eenemy despawn
 * Refactored camera/ship stuff, still not perfect but good enough
+
+### 11/22 11:48pm
+* Added crosshairs (not sure how to do without geom. shaders)

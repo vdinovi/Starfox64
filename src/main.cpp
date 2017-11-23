@@ -22,9 +22,9 @@
 
 #define TURN_RATE 10
 #define CAMERA_MOVE_SPEED 0.75
-#define CAMERA_ORIGIN_Y -2.0
-#define CAMERA_ORIGIN_Z -5.0
-#define CAMERA_FOLLOW 0.6
+#define CAMERA_ORIGIN_Y 0.0
+#define CAMERA_ORIGIN_Z 0.0
+#define CAMERA_FOLLOW 0.75
 
 #define PI 3.14159
 
@@ -236,6 +236,16 @@ public:
 		programs["texture"]->addAttribute("vertNor");
 		programs["texture"]->addAttribute("vertTex");
 
+		programs["crosshair"] = std::make_shared<Program>();
+		programs["crosshair"]->setVerbose(true);
+		programs["crosshair"]->setShaderNames(resourceDir + "/vert_shader.glsl",
+    										  resourceDir + "/crosshair_frag_shader.glsl");
+		programs["crosshair"]->init();
+		programs["crosshair"]->addUniform("P");
+		programs["crosshair"]->addUniform("V");
+		programs["crosshair"]->addUniform("M");
+		programs["crosshair"]->addAttribute("vertPos");
+		programs["crosshair"]->addAttribute("vertNor");
 	}
 
 	void render()
@@ -282,7 +292,7 @@ public:
 		M->loadIdentity();
 
 		// ARWING
-		arwing->draw(programs["texture"], P, M, V, lightPos);
+		arwing->draw(programs["texture"], programs["crosshair"], P, M, V, lightPos);
 		arwing->advance();
 
 		// ENVIRONMENT

@@ -8,6 +8,7 @@ Arwing::Arwing(std::string resourceDir) {
 	std::string err;
 	std::string basePath = resourceDir + "/";
 
+    // Set up ship shape
     bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "arwing.obj").c_str(), basePath.c_str());
     if (!rc) {
         std::cerr << err << std::endl;
@@ -29,22 +30,20 @@ Arwing::Arwing(std::string resourceDir) {
             }
         }
     }
-    std::vector<tinyobj::shape_t> TOshapes1;
-	std::vector<tinyobj::material_t> TOmats1;
-
-    rc = tinyobj::LoadObj(TOshapes1, TOmats1, err, (basePath + "arwing_projectile.obj").c_str(), basePath.c_str());
+    // Set up projectile shape
+    rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "arwing_projectile.obj").c_str(), basePath.c_str());
     if (!rc) {
         std::cerr << err << std::endl;
     }
     else {
-        for (int i = 0; i < TOshapes1.size(); ++i) {
+        for (int i = 0; i < TOshapes.size(); ++i) {
             std::shared_ptr<Shape> shape = std::make_shared<Shape>();
-            shape->createShape(TOshapes1[i]);
+            shape->createShape(TOshapes[i]);
             shape->measure();
             shape->init();
             projectileShapes.push_back(shape);
-            if (TOshapes1[i].mesh.material_ids[0] >= 0) {
-                shape->loadMaterial(TOmats1[TOshapes1[i].mesh.material_ids[0]], basePath);
+            if (TOshapes[i].mesh.material_ids[0] >= 0) {
+                shape->loadMaterial(TOmats[TOshapes[i].mesh.material_ids[0]], basePath);
                 shape->useMaterial = true;
             }
             else {
@@ -53,7 +52,14 @@ Arwing::Arwing(std::string resourceDir) {
             }
         }
     }
-
+    // Set up crosshair shape
+    crosshairShape = std::make_shared<Shape>();
+    std::vector<float> crosshairVerts =
+        { -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0,  1.0, 0.0 };
+    std::vector<unsigned> crosshairInds = { 0, 1, 2, 0, 2, 3 };
+    std::vector<float> crosshairNorms;
+    crosshairShape->createShape(crosshairVerts, crosshairNorms, crosshairInds);
+    crosshairShape->init();
 }
 
 void Arwing::measure() {
@@ -78,10 +84,11 @@ void Arwing::measure() {
     projectileScale = 1;
 }
 
-void Arwing::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<MatrixStack> P,
-                  const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos) {
-
-    prog->bind();
+void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_ptr<Program> crosshairProg,
+                  const std::shared_ptr<MatrixStack> P, const std::shared_ptr<MatrixStack> M,
+                  const glm::mat4& V, const glm::vec3& lightPos)
+{
+    textureProg->bind();
     // Draw Ship
 	M->pushMatrix();
 		M->translate(glm::vec3(position.x, position.y, position.z));
@@ -91,15 +98,15 @@ void Arwing::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Mat
 		M->scale(shipScale);
 		M->translate(-1.0f*shipTrans);
         for (auto shape = shipShapes.begin(); shape != shipShapes.end(); ++shape) {
-			glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-			glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-			glUniform3f(prog->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
-			glUniform3f(prog->getUniform("La"), 1, 1, 1);
-			glUniform3f(prog->getUniform("Ld"), 1, 1, 1);
-			glUniform3f(prog->getUniform("Ls"), 1, 1, 1);
-			glUniform2f(prog->getUniform("texOffset"), 0.0, 0.0);
-			(*shape)->draw(prog);
+			glUniformMatrix4fv(textureProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+			glUniformMatrix4fv(textureProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+			glUniformMatrix4fv(textureProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+			glUniform3f(textureProg->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
+			glUniform3f(textureProg->getUniform("La"), 1, 1, 1);
+			glUniform3f(textureProg->getUniform("Ld"), 1, 1, 1);
+			glUniform3f(textureProg->getUniform("Ls"), 1, 1, 1);
+			glUniform2f(textureProg->getUniform("texOffset"), 0.0, 0.0);
+			(*shape)->draw(textureProg);
         }
     M->popMatrix();
 
@@ -111,29 +118,50 @@ void Arwing::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Mat
         else {
 	        M->pushMatrix();
 		        M->translate(glm::vec3((*p)->position.x, (*p)->position.y, (*p)->position.z));
-                M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
-                M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
-                M->rotate(glm::radians(45.0), glm::vec3(0, 0, 1));
-                M->scale(glm::vec3(0.3, 0.3, 10));
-		        //M->scale(projectileScale);
-		        //M->translate(-1.0f*projectileTrans);
+                M->rotate(glm::radians((*p)->yaw), glm::vec3(0, 1, 0));
+                M->rotate(glm::radians((*p)->pitch), glm::vec3(1, 0, 0));
+                M->scale(glm::vec3(0.3, 0.3, 20));
                 for (auto shape = projectileShapes.begin(); shape != projectileShapes.end(); ++shape) {
-		    	    glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-		    	    glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-		    	    glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-		    	    glUniform3f(prog->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
-		    	    glUniform3f(prog->getUniform("La"), 1, 1, 1);
-		    	    glUniform3f(prog->getUniform("Ld"), 1, 1, 1);
-		    	    glUniform3f(prog->getUniform("Ls"), 1, 1, 1);
-		    	    glUniform2f(prog->getUniform("texOffset"), 0.0, 0.0);
-		    	    (*shape)->draw(prog);
+		    	    glUniformMatrix4fv(textureProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+		    	    glUniformMatrix4fv(textureProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+		    	    glUniformMatrix4fv(textureProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+		    	    glUniform3f(textureProg->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
+		    	    glUniform3f(textureProg->getUniform("La"), 1, 1, 1);
+		    	    glUniform3f(textureProg->getUniform("Ld"), 1, 1, 1);
+		    	    glUniform3f(textureProg->getUniform("Ls"), 1, 1, 1);
+		    	    glUniform2f(textureProg->getUniform("texOffset"), 0.0, 0.0);
+		    	    (*shape)->draw(textureProg);
                 }
             M->popMatrix();
             (*p)->advance();
             p++;
         }
     }
-    prog->unbind();
+    textureProg->unbind();
+
+    // Draw Projctiles
+    crosshairProg->bind();
+	M->pushMatrix();
+		M->translate(glm::vec3(position.x+30*glm::sin(glm::radians(yaw)), position.y-30*glm::sin(glm::radians(pitch)), 30));
+		M->scale(glm::vec3(2, 2, 0));
+        M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
+        M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
+		glUniformMatrix4fv(crosshairProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+		glUniformMatrix4fv(crosshairProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+		glUniformMatrix4fv(crosshairProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+		crosshairShape->draw(crosshairProg);
+    M->popMatrix();
+	M->pushMatrix();
+		M->translate(glm::vec3(position.x+50*glm::sin(glm::radians(yaw)), position.y-50*glm::sin(glm::radians(pitch)), 50));
+		M->scale(glm::vec3(2, 2, 0));
+        M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
+        M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
+	    glUniformMatrix4fv(crosshairProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+		glUniformMatrix4fv(crosshairProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+		glUniformMatrix4fv(crosshairProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+		crosshairShape->draw(crosshairProg);
+    M->popMatrix();
+    crosshairProg->unbind();
 }
 
 void Arwing::pitchUp(int action) {
@@ -172,8 +200,6 @@ void Arwing::yawRight(int action) {
         turning[0] = 0;
     }
 }
-
-
 
 void Arwing::advance() {
     // Handle yaw
@@ -214,16 +240,15 @@ void Arwing::advance() {
 void Arwing::shoot() {
     // @NOTE this is really frustrating to tune; dont fuck with it.
     glm::vec3 shootPos = glm::vec3(
-        position.x + ARWING_SCALE*ARWING_DEPTH*glm::sin(glm::radians(yaw)),
-        position.y - ARWING_SCALE*ARWING_DEPTH*glm::sin(glm::radians(pitch)),
-        position.z +ARWING_DEPTH + 2
+        position.x - 3*ARWING_SCALE*glm::sin(glm::radians(yaw)),
+        position.y + 3*ARWING_SCALE*glm::sin(glm::radians(pitch)),
+        position.z - 2*ARWING_SCALE
     );
     glm::vec3 shootDir = glm::vec3(
         position.x + ARWING_PROJECTILE_DISTANCE*sin(glm::radians(yaw)),
         position.y + -ARWING_PROJECTILE_DISTANCE*sin(glm::radians(pitch)),
         ARWING_PROJECTILE_DISTANCE
     );
-    //std::cout << "Firing at <" << shootDir.x << ", " << shootDir.y << ", " << shootDir.z << ">" << std::endl;
     projectiles.push_back(std::make_shared<Projectile>(
         shootPos,
         shootDir,
