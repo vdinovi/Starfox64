@@ -60,7 +60,7 @@ void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_pt
     prog->bind();
     // Draw Ground
 	M->pushMatrix();
-		M->translate(glm::vec3(0, -(AIRSPACE_HEIGHT+1), GROUND_DEPTH));
+		M->translate(glm::vec3(0, -AIRSPACE_HEIGHT-1, GROUND_DEPTH));
 		M->scale(glm::vec3(GROUND_WIDTH, 1, GROUND_DEPTH));
         M->rotate(glm::radians(90.0), glm::vec3(1, 0, 0));
         for (auto shape = groundShapes.begin(); shape != groundShapes.end(); ++shape) {
@@ -78,8 +78,9 @@ void Environment::draw(const std::shared_ptr<Program> prog, const std::shared_pt
 
 	// Draw Sky
 	M->pushMatrix();
-		M->translate(glm::vec3(0, SKY_HEIGHT/3, 60));
+		M->translate(glm::vec3(0, SKY_HEIGHT/2, 2*GROUND_DEPTH));
 		M->scale(glm::vec3(SKY_WIDTH, SKY_HEIGHT, 1));
+		//M->scale(glm::vec3(SKY_WIDTH, SKY_HEIGHT, 1));
         for (auto shape = skyShapes.begin(); shape != skyShapes.end(); ++shape) {
 	        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 	        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));

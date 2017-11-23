@@ -10,14 +10,19 @@
 #include "MatrixStack.h"
 #include <glm/gtc/type_ptr.hpp>
 
-#define ARWING_HITSPHERE_RADIUS 2.0
+#define ARWING_HIT_RADIUS 2.0
 #define ARWING_MOVE_SPEED 0.5
-#define ARWING_PROJECTILE_SPEED 0.05
 #define ARWING_TURN_RATE 2.0
 #define ARWING_MAX_YAW 45.0
 #define ARWING_MAX_PITCH 30.0
 #define ARWING_SCALE 2.0
-#define ARWING_DEPTH 5.0
+#define ARWING_DEPTH 6.0
+#define ARWING_HEIGHT 3.0
+
+
+#define ARWING_PROJECTILE_SPEED 0.1
+#define ARWING_PROJECTILE_DISTANCE 50
+#define ARWING_PROJECTILE_HIT_RADIUS 1
 
 struct Projectile {
     Projectile(glm::vec3 startPos, glm::vec3 endPos, double speed, float yaw, float pitch)
@@ -66,6 +71,7 @@ public:
 
     void shoot();
 
+    std::vector<std::shared_ptr<Projectile>> projectiles;
 	glm::vec3 position = glm::vec3(0.0, 0.0, ARWING_DEPTH);
 	double yaw = 0.0;
 	double pitch = 0.0;
@@ -80,10 +86,6 @@ private:
     std::vector<std::shared_ptr<Shape>> projectileShapes;
     glm::vec3 projectileTrans;
     float projectileScale;
-
-
-
-    std::vector<std::shared_ptr<Projectile>> projectiles;
 
 	std::vector<int> turning = {0, 0};
  };

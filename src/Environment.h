@@ -12,10 +12,10 @@
 
 #define TEX_SCROLL_RATE 0.003
 #define GROUND_WIDTH 50
-#define GROUND_DEPTH 30
+#define GROUND_DEPTH 40
 
-#define SKY_WIDTH 80
-#define SKY_HEIGHT 40
+#define SKY_WIDTH 90
+#define SKY_HEIGHT 50
 
 
 class Environment {

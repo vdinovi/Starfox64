@@ -22,8 +22,8 @@
 
 #define TURN_RATE 10
 #define CAMERA_MOVE_SPEED 0.75
-#define CAMERA_ORIGIN_Y -(AIRSPACE_HEIGHT/3)
-#define CAMERA_ORIGIN_Z -6.0
+#define CAMERA_ORIGIN_Y -2.0
+#define CAMERA_ORIGIN_Z -5.0
 #define CAMERA_FOLLOW 0.6
 
 #define PI 3.14159
@@ -37,6 +37,10 @@ public:
 	std::map<std::string, std::shared_ptr<Program>> programs;
 	std::map<std::string, std::vector<std::shared_ptr<Shape>>> shapes;
 	std::map<std::string, GLuint> textures;
+
+	// Game
+	clock_t spawnTimer;
+	bool paused = false;
 
 	// Camera
 	bool cameraUnlock = false;
@@ -52,7 +56,6 @@ public:
 	std::shared_ptr<Environment> environment;
 	// Enemy
 	std::shared_ptr<Enemy> enemy;
-	clock_t spawnTimer;
 
 	// Light
 	glm::vec3 lightPos = {1.0, 0.0, 0.0};
@@ -61,10 +64,14 @@ public:
 
 	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		{
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
+		if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+			paused = !paused;
+		}
+
+
 		if (key == GLFW_KEY_U && action == GLFW_PRESS) {
 			if (cameraUnlock) {
 				cameraUnlock = false;
@@ -233,6 +240,9 @@ public:
 
 	void render()
 	{
+		if (paused) {
+			return;
+		}
 		int width, height;
 		glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
 		float aspect = width/(float)height;
@@ -281,8 +291,14 @@ public:
 
 		// ENEMIES
 		enemy->draw(programs["texture"], P, M, V, lightPos);
-		if (enemy->checkCollisions(arwing->position, ARWING_HITSPHERE_RADIUS)) {
-			//shtd::cout << "Arwing collided with an enenemy!" << std::endl;
+		if (enemy->checkCollisions(arwing->position, ARWING_HIT_RADIUS)) {
+			std::cout << "Arwing collided with an enenemy!" << std::endl;
+		}
+		for (auto p = arwing->projectiles.begin(); p != arwing->projectiles.end(); ++p) {
+			unsigned collisions = enemy->checkProjectile((*p)->position, ARWING_PROJECTILE_HIT_RADIUS);
+			if (collisions > 0) {
+				std::cout << "Arwing shot down an enenemy!" << std::endl;
+			}
 		}
 
 		float t = clock()/10000.0 - spawnTimer;

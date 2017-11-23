@@ -13,7 +13,7 @@
 #define ENEMY_SPAWN_CD 60.0
 
 #define ENEMY_SCALE 2.0
-#define ENEMY_HITSPHERE_RADIUS 2.0
+#define ENEMY_HIT_RADIUS 2.0
 #define MIN_ENEMY_INTERP_SPEED 0.006
 #define MAX_ENEMY_INTERP_SPEED 0.008
 
@@ -57,7 +57,8 @@ public:
 
     void spawnEnemy();
 
-    bool checkCollisions(glm::vec3 position, float radius);
+    unsigned checkCollisions(glm::vec3 position, float radius);
+    unsigned checkProjectile(glm::vec3 position, float radius);
 
     void advance();
 

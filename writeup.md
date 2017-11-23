@@ -34,3 +34,9 @@ Place to record development activity/thoughts/resources
 ### 11/22 3:00pm
 * Added random-spawn enemy arwings that linear-interp towards the camera
 * Added basic collision detection between the Arwing and ground/enemies
+
+### 11/22 8:48pm
+* Created obj/mtl file for projectiles which is consistent with original ship projectiles
+* Added ship projectiles which look and feel close the the original game
+* Added projectile-enemy collision detection and eenemy despawn
+* Refactored camera/ship stuff, still not perfect but good enough

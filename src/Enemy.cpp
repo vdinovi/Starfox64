@@ -129,12 +129,28 @@ void Enemy::spawnEnemy() {
 }
 
 
-bool Enemy::checkCollisions(glm::vec3 position, float radius) {
+unsigned Enemy::checkCollisions(glm::vec3 position, float radius) {
+    unsigned collisions = 0;
     for (auto e = enemies.begin(); e != enemies.end(); ++e) {
-        if (glm::distance((*e)->position, position) <= radius) {
-            return true;
+        if (glm::distance((*e)->position, position) <= radius + ENEMY_HIT_RADIUS) {
+            collisions++;
         }
     }
-    return false;
+    return collisions;
 }
+
+unsigned Enemy::checkProjectile(glm::vec3 position, float radius) {
+    unsigned collisions = 0;
+    for (auto e = enemies.begin(); e != enemies.end();) {
+        if (glm::distance((*e)->position, position) <= radius + ENEMY_HIT_RADIUS) {
+            enemies.erase(e);
+            collisions++;
+        }
+        else {
+            e++;
+        }
+    }
+    return collisions;
+}
+
 

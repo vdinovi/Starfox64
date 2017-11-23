@@ -114,7 +114,7 @@ void Arwing::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Mat
                 M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
                 M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
                 M->rotate(glm::radians(45.0), glm::vec3(0, 0, 1));
-                M->scale(glm::vec3(0.3, 0.3, 5));
+                M->scale(glm::vec3(0.3, 0.3, 10));
 		        //M->scale(projectileScale);
 		        //M->translate(-1.0f*projectileTrans);
                 for (auto shape = projectileShapes.begin(); shape != projectileShapes.end(); ++shape) {
@@ -214,11 +214,15 @@ void Arwing::advance() {
 void Arwing::shoot() {
     // @NOTE this is really frustrating to tune; dont fuck with it.
     glm::vec3 shootPos = glm::vec3(
-        position.x + ARWING_SCALE/2*glm::sin(glm::radians(yaw)),
-        position.y - ARWING_SCALE/3*glm::sin(glm::radians(pitch)),
-        4
+        position.x + ARWING_SCALE*ARWING_DEPTH*glm::sin(glm::radians(yaw)),
+        position.y - ARWING_SCALE*ARWING_DEPTH*glm::sin(glm::radians(pitch)),
+        position.z +ARWING_DEPTH + 2
     );
-    glm::vec3 shootDir = glm::vec3(100*sin(glm::radians(yaw)), -100*sin(glm::radians(pitch)), 100);
+    glm::vec3 shootDir = glm::vec3(
+        position.x + ARWING_PROJECTILE_DISTANCE*sin(glm::radians(yaw)),
+        position.y + -ARWING_PROJECTILE_DISTANCE*sin(glm::radians(pitch)),
+        ARWING_PROJECTILE_DISTANCE
+    );
     //std::cout << "Firing at <" << shootDir.x << ", " << shootDir.y << ", " << shootDir.z << ">" << std::endl;
     projectiles.push_back(std::make_shared<Projectile>(
         shootPos,
