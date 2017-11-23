@@ -135,6 +135,9 @@ public:
 		if (key == GLFW_KEY_DOWN && action == GLFW_RELEASE) {
 			arwing->pitchUp(KEY_RELEASE);
 		}
+		if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+			arwing->shoot();
+		}
 	}
 
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)

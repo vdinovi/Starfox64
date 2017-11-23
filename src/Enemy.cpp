@@ -137,3 +137,4 @@ bool Enemy::checkCollisions(glm::vec3 position, float radius) {
     }
     return false;
 }
+
