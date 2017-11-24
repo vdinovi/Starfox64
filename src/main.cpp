@@ -142,9 +142,22 @@ public:
 		if (key == GLFW_KEY_DOWN && action == GLFW_RELEASE) {
 			arwing->pitchUp(KEY_RELEASE);
 		}
-		if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 			arwing->shoot();
 		}
+		if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+			arwing->rollLeft(KEY_PRESS);
+		}
+		if (key == GLFW_KEY_Z && action == GLFW_RELEASE) {
+			arwing->rollLeft(KEY_RELEASE);
+		}
+		if (key == GLFW_KEY_X && action == GLFW_PRESS) {
+			arwing->rollRight(KEY_PRESS);
+		}
+		if (key == GLFW_KEY_X && action == GLFW_RELEASE) {
+			arwing->rollRight(KEY_RELEASE);
+		}
+
 	}
 
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)

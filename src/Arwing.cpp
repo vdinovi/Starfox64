@@ -94,6 +94,7 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
 		M->translate(glm::vec3(position.x, position.y, position.z));
 		M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
 		M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
+		M->rotate(glm::radians(roll), glm::vec3(0, 0, 1));
 		M->scale(glm::vec3(ARWING_SCALE, ARWING_SCALE, ARWING_SCALE));
 		M->scale(shipScale);
 		M->translate(-1.0f*shipTrans);
@@ -166,70 +167,100 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
 
 void Arwing::pitchUp(int action) {
     if (action == KEY_PRESS) {
-        turning[1] = 1;
+        pitching = PITCHING_UP;
     }
     if (action == KEY_RELEASE) {
-        turning[1] = 0;
+        pitching = NOT_PITCHING;
     }
 }
 
 void Arwing::pitchDown(int action) {
     if (action == KEY_PRESS) {
-        turning[1] = -1;
+        pitching = PITCHING_DOWN;
 	}
     if (action == KEY_RELEASE) {
-        turning[1] = 0;
+        pitching = NOT_PITCHING;
     }
 }
 
 void Arwing::yawLeft(int action) {
     if (action == KEY_PRESS) {
-        turning[0] = -1;
+        yawing = YAWING_LEFT;
     }
     if (action == KEY_RELEASE) {
-        turning[0] = 0;
+        yawing = NOT_YAWING;
     }
 
 }
 
 void Arwing::yawRight(int action) {
     if (action == KEY_PRESS) {
-        turning[0] = 1;
+        yawing = YAWING_RIGHT;
     }
     if (action == KEY_RELEASE) {
-        turning[0] = 0;
+        yawing = NOT_YAWING;
+    }
+}
+
+void Arwing::rollLeft(int action) {
+    if (action == KEY_PRESS) {
+        rolling = ROLLING_LEFT;
+    }
+    if (action == KEY_RELEASE) {
+        rolling = NOT_ROLLING;
+    }
+}
+
+void Arwing::rollRight(int action) {
+    if (action == KEY_PRESS) {
+        rolling = ROLLING_RIGHT;
+    }
+    if (action == KEY_RELEASE) {
+        rolling = NOT_ROLLING;
     }
 }
 
 void Arwing::advance() {
-    // Handle yaw
-    switch(turning[0]) {
-    case 0: // not turning
+    switch(yawing) {
+    case NOT_YAWING:
         yaw = yaw < 0 ?
             glm::min(yaw + 2*ARWING_TURN_RATE, 0.0) :
             (yaw > 0 ? glm::max(yaw - 2*ARWING_TURN_RATE, 0.0) : 0.0);
         break;
-    case -1: // turning left
+    case YAWING_LEFT:
         yaw = glm::min(yaw + ARWING_TURN_RATE, ARWING_MAX_YAW);
         break;
-    case 1: // turning right
+    case YAWING_RIGHT:
         yaw = glm::max(yaw - ARWING_TURN_RATE, -ARWING_MAX_YAW);
         break;
     }
-    // Handle pitch
-    switch(turning[1]) {
-    case 0: // not turning
+    switch(pitching) {
+    case NOT_PITCHING:
         pitch = pitch < 0 ?
             glm::min(pitch + 2*ARWING_TURN_RATE, 0.0) :
             (pitch > 0 ? glm::max(pitch - 2*ARWING_TURN_RATE, 0.0) : 0.0);
         break;
-    case -1: // turning down
+    case PITCHING_DOWN:
         pitch = glm::min(pitch + ARWING_TURN_RATE, ARWING_MAX_PITCH);
         break;
-    case 1: // turning up
+    case PITCHING_UP:
         pitch = glm::max(pitch - ARWING_TURN_RATE, -ARWING_MAX_PITCH);
         break;
     }
+    switch(rolling) {
+    case NOT_ROLLING:
+        roll = roll < 0 ?
+               glm::min(roll + 2*ARWING_ROLL_RATE, 0.0) :
+               (roll > 0 ? glm::max(roll - 2*ARWING_ROLL_RATE, 0.0) : 0.0);
+        break;
+    case ROLLING_LEFT:
+        roll = glm::max(roll - 3*ARWING_TURN_RATE, -ARWING_MAX_ROLL);
+        break;
+    case ROLLING_RIGHT:
+        roll = glm::min(roll + 3*ARWING_TURN_RATE, ARWING_MAX_ROLL);
+        break;
+    }
+
 
     position.x = glm::clamp(position.x + ARWING_MOVE_SPEED*glm::sin(glm::radians(yaw)),
                             -AIRSPACE_WIDTH, AIRSPACE_WIDTH);

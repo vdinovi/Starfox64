@@ -10,13 +10,25 @@
 #include "MatrixStack.h"
 #include <glm/gtc/type_ptr.hpp>
 
+#define NOT_YAWING 0
+#define YAWING_LEFT -1
+#define YAWING_RIGHT 1
+#define NOT_PITCHING 0
+#define PITCHING_DOWN -1
+#define PITCHING_UP 1
+#define NOT_ROLLING 0
+#define ROLLING_LEFT -1
+#define ROLLING_RIGHT 1
+
 #define ARWING_SCALE 2.0
 #define ARWING_HEIGHT 0.0
 #define ARWING_DEPTH 12.0
 #define ARWING_MAX_YAW 45.0
 #define ARWING_MAX_PITCH 30.0
+#define ARWING_MAX_ROLL 90.0
 #define ARWING_MOVE_SPEED 0.5
 #define ARWING_TURN_RATE 1.5
+#define ARWING_ROLL_RATE 5
 #define ARWING_HIT_RADIUS 2.0
 
 
@@ -69,6 +81,8 @@ public:
     void pitchDown(int action);
     void yawLeft(int action);
     void yawRight(int action);
+    void rollLeft(int action);
+    void rollRight(int action);
 
     void shoot();
 
@@ -76,6 +90,7 @@ public:
 	glm::vec3 position = glm::vec3(0.0, 0.0, ARWING_DEPTH);
 	double yaw = 0.0;
 	double pitch = 0.0;
+    double roll = 0.0;
 
 private:
     Arwing(Arwing const &a) = delete;
@@ -90,7 +105,9 @@ private:
 
     std::shared_ptr<Shape> crosshairShape;
 
-	std::vector<int> turning = {0, 0};
+    int yawing = NOT_YAWING;
+    int pitching = NOT_PITCHING;
+    int rolling = NOT_ROLLING;
  };
 
 #endif // FINAL_471_ARWING_H_INCLUDED
