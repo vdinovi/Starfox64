@@ -139,13 +139,13 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
     }
     textureProg->unbind();
 
-    // Draw Projctiles
+    // Draw CrossHairs
     crosshairProg->bind();
 	M->pushMatrix();
 		M->translate(glm::vec3(position.x+30*glm::sin(glm::radians(yaw)), position.y-30*glm::sin(glm::radians(pitch)), 30));
-		M->scale(glm::vec3(2, 2, 0));
         M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
         M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
+		M->scale(glm::vec3(2, 2, 0));
 		glUniformMatrix4fv(crosshairProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(crosshairProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 		glUniformMatrix4fv(crosshairProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
@@ -153,9 +153,9 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
     M->popMatrix();
 	M->pushMatrix();
 		M->translate(glm::vec3(position.x+50*glm::sin(glm::radians(yaw)), position.y-50*glm::sin(glm::radians(pitch)), 50));
-		M->scale(glm::vec3(2, 2, 0));
         M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
         M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
+		M->scale(glm::vec3(2, 2, 0));
 	    glUniformMatrix4fv(crosshairProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(crosshairProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 		glUniformMatrix4fv(crosshairProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));

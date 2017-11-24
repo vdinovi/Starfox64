@@ -56,17 +56,14 @@ void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Matr
     prog->bind();
     for (auto e = enemies.begin(); e != enemies.end();) {
         if ((*e)->travelDistance < 0.0) {
-            //std::cout << "Travel Distance is " << (*e)->travelDistance << " -- Erasing.." << std::endl;
-            //EnemyUnit eu = **e;
             enemies.erase(e);
         } else {
-            //std::cout << "Travel Distance is " << (*e)->travelDistance << std::endl;
 	        M->pushMatrix();
 		        M->translate(glm::vec3((*e)->position.x, (*e)->position.y, (*e)->position.z));
-		        //M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
-		        //M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
-                M->rotate(glm::radians(180.0), glm::vec3(0, 1, 0));
 		        M->scale(glm::vec3(ENEMY_SCALE/2, ENEMY_SCALE/2, ENEMY_SCALE/2));
+                M->rotate(glm::radians(180.0), glm::vec3(0, 1, 0));
+		        M->rotate((*e)->yaw, glm::vec3(0, 1, 0));
+		        M->rotate((*e)->pitch, glm::vec3(1, 0, 0));
 		        M->scale(scale);
 		        M->translate(-1.0f*trans);
                 for (auto shape = shapes.begin(); shape != shapes.end(); ++shape) {
@@ -109,23 +106,25 @@ void Enemy::spawnEnemy() {
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
     float startZ = FRONT_ENEMY_SPAWN_BOUND + (BACK_ENEMY_SPAWN_BOUND - FRONT_ENEMY_SPAWN_BOUND)
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
+
     float endX = LEFT_ENEMY_END_BOUND + (RIGHT_ENEMY_END_BOUND - LEFT_ENEMY_END_BOUND)
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
     float endY = LOWER_ENEMY_END_BOUND + (UPPER_ENEMY_END_BOUND - LOWER_ENEMY_END_BOUND)
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
     float endZ = ENEMY_END_Z;
 
+    double yaw = atan((endX-startX)/(endZ-startZ));
+    double pitch = atan((endY-startY)/(endZ-startZ));
 
     enemies.push_back(std::make_shared<EnemyUnit>(
         glm::vec3(startX, startY, startZ),
         glm::vec3(endX, endY, endZ),
-        speed
+        speed,
+        yaw,
+        pitch
     ));
     auto e = enemies.back();
     e->advance();
-    //std::cout << "New unit (" <<  e->startPosition.x << ", " << e->startPosition.y << ", " << e->startPosition.z;
-    //std::cout << ") -> (" <<  e->endPosition.x << ", " << e->endPosition.y << ", " << e->endPosition.z;
-    //std::cout << ") with travel distance: " << e->travelDistance << " and speed: " << e->speed << std::endl;
 }
 
 

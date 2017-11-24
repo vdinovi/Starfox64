@@ -12,15 +12,15 @@
 
 #define ENEMY_SPAWN_CD 60.0
 
-#define ENEMY_SCALE 2.0
-#define ENEMY_HIT_RADIUS 2.0
+#define ENEMY_SCALE 3.0
+#define ENEMY_HIT_RADIUS 3.0
 #define MIN_ENEMY_INTERP_SPEED 0.006
 #define MAX_ENEMY_INTERP_SPEED 0.008
 
-#define LEFT_ENEMY_SPAWN_BOUND -50.0
-#define RIGHT_ENEMY_SPAWN_BOUND 50.0
-#define LOWER_ENEMY_SPAWN_BOUND -5.0
-#define UPPER_ENEMY_SPAWN_BOUND 30.0
+#define LEFT_ENEMY_SPAWN_BOUND 60.0
+#define RIGHT_ENEMY_SPAWN_BOUND -60.0
+#define LOWER_ENEMY_SPAWN_BOUND -8.0
+#define UPPER_ENEMY_SPAWN_BOUND 50.0
 #define FRONT_ENEMY_SPAWN_BOUND 80
 #define BACK_ENEMY_SPAWN_BOUND 100
 
@@ -32,10 +32,12 @@
 
 
 struct EnemyUnit {
-    EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed)
+    EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed, double yaw, double pitch)
         : startPosition(startPos)
         , endPosition(endPos)
         , speed(speed)
+        , yaw(yaw)
+        , pitch(pitch)
         , travelDistance(1)
     {}
 
@@ -43,6 +45,8 @@ struct EnemyUnit {
 	glm::vec3 startPosition;
 	glm::vec3 endPosition;
     double speed;
+    double yaw;
+    double pitch;
     double travelDistance;
 
     void advance();
