@@ -43,3 +43,8 @@ Place to record development activity/thoughts/resources
 
 ### 11/22 11:48pm
 * Added crosshairs (not sure how to do without geom. shaders)
+
+### 11/23 9:00pm
+* Fixed enemy, crosshair, and ship rotations
+* Added rolling and cleaned up ship control code
+* Began adding interface (really unsure of how to render text/semi-transparent textures; same problem as crosshairs -- geom shader?)
