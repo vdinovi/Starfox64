@@ -58,7 +58,7 @@ public:
 	std::shared_ptr<Enemy> enemy;
 
 	// Light
-	glm::vec3 lightPos = {1.0, 0.0, 0.0};
+	glm::vec3 lightPos = {-30.0, 30.0, 30.0};
 
 
 

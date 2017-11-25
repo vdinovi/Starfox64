@@ -29,22 +29,20 @@ Environment::Environment(std::string resourceDir) {
 			}
 		}
     }
-	std::vector<tinyobj::shape_t> TOshapes1;
-	std::vector<tinyobj::material_t> TOmats1;
 
-	rc = tinyobj::LoadObj(TOshapes1, TOmats1, err, (basePath + "sky.obj").c_str(), basePath.c_str());
+	rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "sky.obj").c_str(), basePath.c_str());
 	if (!rc) {
 		std::cerr << err << std::endl;
 	}
 	else {
-		for (int i = 0; i < TOshapes1.size(); ++i) {
+		for (int i = 0; i < TOshapes.size(); ++i) {
 			std::shared_ptr<Shape> shape = std::make_shared<Shape>();
-			shape->createShape(TOshapes1[i]);
+			shape->createShape(TOshapes[i]);
 			shape->measure();
 			shape->init();
             skyShapes.push_back(shape);
-			if (TOshapes1[i].mesh.material_ids[0] >= 0) {
-				shape->loadMaterial(TOmats1[TOshapes1[i].mesh.material_ids[0]], basePath);
+			if (TOshapes[i].mesh.material_ids[0] >= 0) {
+				shape->loadMaterial(TOmats[TOshapes[i].mesh.material_ids[0]], basePath);
 				shape->useMaterial = true;
 			}
 			else {

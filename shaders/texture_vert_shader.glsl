@@ -30,25 +30,23 @@ vec3 lightFunc(vec3 position, vec3 norm)
 	vec3 v = normalize(-position.xyz);
 	vec3 r = reflect(-l, norm);
 
-	//vec3 ambient = La * Ka;
+	vec3 ambient = La * Ka;
 
 	float lDotN = max(dot(l, norm), 0.0);
 	vec3 diffuse = Ld * Kd * lDotN;
 
-	//vec3 spec = Ls * Ks * pow(max(dot(r, v), 0.0), Shine);
+	vec3 spec = Ls * Ks * pow(max(dot(r, v), 0.0), Shine);
 
-	//return ambient + diffuse + spec;
-	return diffuse;
-
+	return ambient + diffuse + spec;
 }
 
 void main()
 {
 	mat4 normMat = transpose(inverse(M));
-	vec3 eyeNorm = normalize(normMat * vec4(vertNor, 0)).xyz;
-	vec3 eyePosition = vec3(V * M * vertPos);
+	vec3 norm = normalize(normMat * vec4(vertNor, 0)).xyz;
+	vec3 position = vec3(V * M * vertPos);
 
-	fragColor = lightFunc(eyePosition, eyeNorm);
+	fragColor = lightFunc(position, norm);
 	fragTexCoord = vertTex + texOffset;
 	gl_Position = P * V * M * vertPos;
 }

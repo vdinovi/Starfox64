@@ -53,6 +53,7 @@ public:
 	Material material;
 
 private:
+	void generateNormals();
 
 	std::vector<unsigned int> eleBuf;
 	std::vector<float> posBuf;

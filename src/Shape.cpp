@@ -109,13 +109,12 @@ void Shape::init()
 	CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, posBufID));
 	CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, posBuf.size()*sizeof(float), &posBuf[0], GL_STATIC_DRAW));
 	if (norBuf.empty()) {
-		norBufID = 0;
+		generateNormals();
 	}
-	else {
-		CHECKED_GL_CALL(glGenBuffers(1, &norBufID));
-		CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, norBufID));
-		CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, norBuf.size()*sizeof(float), &norBuf[0], GL_STATIC_DRAW));
-	}
+	CHECKED_GL_CALL(glGenBuffers(1, &norBufID));
+	CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, norBufID));
+	CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, norBuf.size()*sizeof(float), &norBuf[0], GL_STATIC_DRAW));
+
 	if (texBuf.empty()) {
 		texBufID = 0;
 		useMaterial = false;
@@ -176,4 +175,31 @@ void Shape::draw(const shared_ptr<Program> prog) const
 	GLSL::disableVertexAttribArray(h_pos);
 	CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	CHECKED_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+}
+
+void Shape::generateNormals() {
+    norBuf = std::vector<float>(posBuf.size(), 0);
+    // Accumulate the each face normal for every vertex that is a part of a given face
+    for (int fndx = 0; fndx < eleBuf.size(); fndx += 3) {
+        glm::vec3 a(posBuf[3*eleBuf[fndx]], posBuf[3*eleBuf[fndx]+1], posBuf[3*eleBuf[fndx]+2]);
+        glm::vec3 b(posBuf[3*eleBuf[fndx+1]], posBuf[3*eleBuf[fndx+1]+1], posBuf[3*eleBuf[fndx+1]+2]);
+        glm::vec3 c(posBuf[3*eleBuf[fndx+2]], posBuf[3*eleBuf[fndx+2]+1], posBuf[3*eleBuf[fndx+2]+2]);
+        glm::vec3 ac = c - a;
+        glm::vec3 ab = b - a;
+        glm::vec3 norm = glm::cross(ab, ac);
+
+        for (int v = 0; v < 3; ++v) {
+            norBuf[3*eleBuf[fndx+v]] += norm[0];
+            norBuf[3*eleBuf[fndx+v]+1] += norm[1];
+            norBuf[3*eleBuf[fndx+v]+2] += norm[2];
+        }
+    }
+    // Now normalize each normal
+    for (float nndx = 0; nndx < norBuf.size(); nndx += 3) {
+        glm::vec3 normal(norBuf[nndx], norBuf[nndx+1], norBuf[nndx+2]);
+        glm::vec3 normalized = normalize(normal);
+        norBuf[nndx] = normalized[0];
+        norBuf[nndx+1] = normalized[1];
+        norBuf[nndx+2] = normalized[2];
+    }
 }
