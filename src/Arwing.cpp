@@ -270,6 +270,7 @@ void Arwing::advance() {
 
 void Arwing::shoot() {
     // @NOTE this is really frustrating to tune; dont fuck with it.
+    // -- I fixed some stuff and it's less frustrating now...
     glm::vec3 shootPos = glm::vec3(
         position.x - 3*ARWING_SCALE*glm::sin(glm::radians(yaw)),
         position.y + 3*ARWING_SCALE*glm::sin(glm::radians(pitch)),

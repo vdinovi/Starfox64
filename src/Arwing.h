@@ -31,10 +31,11 @@
 #define ARWING_ROLL_RATE 5
 #define ARWING_HIT_RADIUS 2.0
 
-
 #define ARWING_PROJECTILE_SPEED 0.1
 #define ARWING_PROJECTILE_DISTANCE 50
 #define ARWING_PROJECTILE_HIT_RADIUS 1
+
+#define ARWING_MAX_HEALTH 10
 
 struct Projectile {
     Projectile(glm::vec3 startPos, glm::vec3 endPos, double speed, float yaw, float pitch)

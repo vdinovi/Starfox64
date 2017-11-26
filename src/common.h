@@ -13,8 +13,9 @@
 
 struct vao_t {
     unsigned vaoId;
-    unsigned vboId;
-
+    unsigned vboId[3];
+    unsigned iboId;
+    unsigned numElements;
 };
 
 #endif // FINAL_471_COMMON_H_INCLUDED

@@ -19,6 +19,7 @@
 #include "Arwing.h"
 #include "Enemy.h"
 #include "Environment.h"
+#include "Interface.h"
 
 #define TURN_RATE 10
 #define CAMERA_MOVE_SPEED 0.75
@@ -56,6 +57,9 @@ public:
 	std::shared_ptr<Environment> environment;
 	// Enemy
 	std::shared_ptr<Enemy> enemy;
+	// Interface
+	std::shared_ptr<Interface> interface;
+
 
 	// Light
 	glm::vec3 lightPos = {-30.0, 30.0, 30.0};
@@ -208,6 +212,8 @@ public:
 
 		environment = std::make_shared<Environment>(basePath);
 		//environment->measure();
+
+		interface = std::make_shared<Interface>(ARWING_MAX_HEALTH);
 	}
 
 	void initTex(const std::string& resourceDir)
@@ -259,6 +265,18 @@ public:
 		programs["crosshair"]->addUniform("M");
 		programs["crosshair"]->addAttribute("vertPos");
 		programs["crosshair"]->addAttribute("vertNor");
+
+		programs["simple_color"] = std::make_shared<Program>();
+		programs["simple_color"]->setVerbose(true);
+		programs["simple_color"]->setShaderNames(resourceDir + "/simple_color_vert_shader.glsl",
+    										  	 resourceDir + "/simple_color_frag_shader.glsl");
+		programs["simple_color"]->init();
+		programs["simple_color"]->addUniform("P");
+		programs["simple_color"]->addUniform("V");
+		programs["simple_color"]->addUniform("M");
+		programs["simple_color"]->addAttribute("vertPos");
+		programs["simple_color"]->addAttribute("vertCol");
+
 	}
 
 	void render()
@@ -330,6 +348,9 @@ public:
 			spawnTimer = clock()/10000.0;
 			enemy->spawnEnemy();
 		}
+
+		// INTERFACE
+		//interface->draw(programs["simple_color"], P, M, V, ARWING_MAX_HEALTH);
 
 
 		P->popMatrix();
