@@ -36,6 +36,8 @@
 #define ARWING_PROJECTILE_HIT_RADIUS 1
 
 #define ARWING_MAX_HEALTH 10
+#define ARWING_NORMAL 0
+#define ARWING_DAMAGED 1
 
 struct Projectile {
     Projectile(glm::vec3 startPos, glm::vec3 endPos, double speed, float yaw, float pitch)
@@ -109,6 +111,9 @@ private:
     int yawing = NOT_YAWING;
     int pitching = NOT_PITCHING;
     int rolling = NOT_ROLLING;
+
+    int state = ARWING_NORMAL;
+
  };
 
 #endif // FINAL_471_ARWING_H_INCLUDED

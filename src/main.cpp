@@ -342,6 +342,7 @@ public:
 			}
 		}
 
+		// SPAWN ENEMY
 		float t = clock()/10000.0 - spawnTimer;
 		if (t >= ENEMY_SPAWN_CD) {
 			//std::cout << "Time: " << t << std::endl;
@@ -350,6 +351,7 @@ public:
 		}
 
 		// INTERFACE
+		// @TODO not sure how to render it as a fixed overlay
 		//interface->draw(programs["simple_color"], P, M, V, ARWING_MAX_HEALTH);
 
 
