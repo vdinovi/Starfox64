@@ -52,13 +52,16 @@ Arwing::Arwing(std::string resourceDir) {
             }
         }
     }
+
     // Set up crosshair shape
     crosshairShape = std::make_shared<Shape>();
-    std::vector<float> crosshairVerts =
-        { -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0,  1.0, 0.0 };
-    std::vector<unsigned> crosshairInds = { 0, 1, 2, 0, 2, 3 };
+    std::vector<float> crosshairVerts = { -1.0, -1.0, 0.0, 1.0, -1.0,
+                                           0.0, 1.0, 1.0, 0.0, -1.0,  1.0, 0.0 };
     std::vector<float> crosshairNorms;
-    crosshairShape->createShape(crosshairVerts, crosshairNorms, crosshairInds);
+    std::vector<float> crosshairTex = { 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,};
+    std::vector<unsigned> crosshairInds = { 0, 1, 2, 0, 2, 3 };
+    crosshairShape->createShape(crosshairVerts, crosshairNorms, crosshairTex, crosshairInds);
+    crosshairShape->loadTexture(basePath + "crosshair.jpg");
     crosshairShape->init();
 }
 
@@ -143,17 +146,17 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
     // Draw CrossHairs
     crosshairProg->bind();
 	M->pushMatrix();
-		M->translate(glm::vec3(position.x+30*glm::sin(glm::radians(yaw)), position.y-30*glm::sin(glm::radians(pitch)), 30));
+		M->translate(glm::vec3(position.x+50*glm::sin(glm::radians(yaw)), position.y-50*glm::sin(glm::radians(pitch)), 50));
         M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
         M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
 		M->scale(glm::vec3(2, 2, 0));
-		glUniformMatrix4fv(crosshairProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+	    glUniformMatrix4fv(crosshairProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(crosshairProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 		glUniformMatrix4fv(crosshairProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 		crosshairShape->draw(crosshairProg);
     M->popMatrix();
 	M->pushMatrix();
-		M->translate(glm::vec3(position.x+50*glm::sin(glm::radians(yaw)), position.y-50*glm::sin(glm::radians(pitch)), 50));
+		M->translate(glm::vec3(position.x+22*glm::sin(glm::radians(yaw)), position.y-22*glm::sin(glm::radians(pitch)), 30));
         M->rotate(glm::radians(yaw), glm::vec3(0, 1, 0));
         M->rotate(glm::radians(pitch), glm::vec3(1, 0, 0));
 		M->scale(glm::vec3(2, 2, 0));

@@ -257,7 +257,7 @@ public:
 
 		programs["crosshair"] = std::make_shared<Program>();
 		programs["crosshair"]->setVerbose(true);
-		programs["crosshair"]->setShaderNames(resourceDir + "/vert_shader.glsl",
+		programs["crosshair"]->setShaderNames(resourceDir + "/crosshair_vert_shader.glsl",
     										  resourceDir + "/crosshair_frag_shader.glsl");
 		programs["crosshair"]->init();
 		programs["crosshair"]->addUniform("P");
@@ -265,6 +265,7 @@ public:
 		programs["crosshair"]->addUniform("M");
 		programs["crosshair"]->addAttribute("vertPos");
 		programs["crosshair"]->addAttribute("vertNor");
+		programs["crosshair"]->addAttribute("vertTex");
 
 		programs["simple_color"] = std::make_shared<Program>();
 		programs["simple_color"]->setVerbose(true);

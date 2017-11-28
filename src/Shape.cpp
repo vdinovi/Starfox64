@@ -77,6 +77,14 @@ void Shape::createShape(vector<float>& positions, vector<float>& normals, vector
 	eleBuf = indices;
 }
 
+void Shape::createShape(vector<float>& positions, vector<float>& normals,
+						vector<float>& texcoords, vector<unsigned>& indices) {
+	posBuf = positions;
+	norBuf = normals;
+	texBuf = texcoords;
+	eleBuf = indices;
+}
+
 void Shape::measure()
 {
 	float minX, minY, minZ;
