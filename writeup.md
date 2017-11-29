@@ -48,3 +48,28 @@ Place to record development activity/thoughts/resources
 * Fixed enemy, crosshair, and ship rotations
 * Added rolling and cleaned up ship control code
 * Began adding interface (really unsure of how to render text/semi-transparent textures; same problem as crosshairs -- geom shader?)
+
+
+## Update
+* Since coming back to school, been working on this on & off. Forgot to update this doc
+* By monday I plan to implement:
+  * Ship exhaust lighting
+  * Enemy Explosion animations when hit by projectile
+  * Enemies following splines
+  * Some kind of Interface
+  * Arwing health and explosion animation
+  * Enemy projectiles
+* If I have time, I'd also like to implement:
+  * Simple random (can't even call it procedural) terrain generation
+  * Rings
+  * Water reflection of scene
+  * Audio
+  * Part of the land portion of the level
+
+
+### 11/28 11:00pm
+* Fixed lighting
+* Fixed crosshairs
+* Added simple exhaust lighting
+* Added groundwork for the interface
+* Tried rushing through some enemy spline paths, but reverted -- will do soon
