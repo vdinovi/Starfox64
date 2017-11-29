@@ -73,9 +73,9 @@ public:
             Uniforms (P, V, M, MatAmb, MatDiff, MatSpec, Shine, lightPos, texOffset) have been set.
             Attributes (vertPos, vertNor, vertTex) have been set
     */
-    void draw(const std::shared_ptr<Program> textureProg, const std::shared_ptr<Program> crosshairProg,
-              const std::shared_ptr<MatrixStack> P, const std::shared_ptr<MatrixStack> M,
-              const glm::mat4& V, const glm::vec3& lightPos);
+    void draw(const std::shared_ptr<Program> textureProg, const std::shared_ptr<Program> exhaustProg,
+              const std::shared_ptr<Program> crosshairProg, const std::shared_ptr<MatrixStack> P,
+              const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos);
 
     // Code to advance arwing state. Called on each iteration of game loop
     void advance();
@@ -102,11 +102,14 @@ private:
     glm::vec3 shipTrans;
     float shipScale;
 
+    std::shared_ptr<vao_t> exhaustLight;
+
     std::vector<std::shared_ptr<Shape>> projectileShapes;
     glm::vec3 projectileTrans;
     float projectileScale;
 
     std::shared_ptr<Shape> crosshairShape;
+    bool flicker = false;
 
     int yawing = NOT_YAWING;
     int pitching = NOT_PITCHING;

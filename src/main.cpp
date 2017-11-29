@@ -62,7 +62,7 @@ public:
 
 
 	// Light
-	glm::vec3 lightPos = {-30.0, 30.0, 30.0};
+	glm::vec3 lightPos = {-10.0, 15.0, 10.0};
 
 
 
@@ -267,6 +267,17 @@ public:
 		programs["crosshair"]->addAttribute("vertNor");
 		programs["crosshair"]->addAttribute("vertTex");
 
+		programs["exhaust"] = std::make_shared<Program>();
+		programs["exhaust"]->setVerbose(true);
+		programs["exhaust"]->setShaderNames(resourceDir + "/exhaust_vert_shader.glsl",
+    										resourceDir + "/exhaust_frag_shader.glsl");
+		programs["exhaust"]->init();
+		programs["exhaust"]->addUniform("P");
+		programs["exhaust"]->addUniform("V");
+		programs["exhaust"]->addUniform("M");
+		programs["exhaust"]->addUniform("Flicker");
+		programs["exhaust"]->addAttribute("vertPos");
+
 		programs["simple_color"] = std::make_shared<Program>();
 		programs["simple_color"]->setVerbose(true);
 		programs["simple_color"]->setShaderNames(resourceDir + "/simple_color_vert_shader.glsl",
@@ -323,10 +334,6 @@ public:
 		}
 		M->loadIdentity();
 
-		// ARWING
-		arwing->draw(programs["texture"], programs["crosshair"], P, M, V, lightPos);
-		arwing->advance();
-
 		// ENVIRONMENT
 		environment->draw(programs["texture"], P, M, V, lightPos);
 		environment->advance();
@@ -354,6 +361,12 @@ public:
 		// INTERFACE
 		// @TODO not sure how to render it as a fixed overlay
 		//interface->draw(programs["simple_color"], P, M, V, ARWING_MAX_HEALTH);
+
+		// ARWING
+		arwing->draw(programs["texture"], programs["exhaust"], programs["crosshair"], P, M, V, lightPos);
+		arwing->advance();
+
+
 
 
 		P->popMatrix();

@@ -53,6 +53,19 @@ Arwing::Arwing(std::string resourceDir) {
         }
     }
 
+    std::vector<float> exhaustPos = { 0.0, 0.0, 0.0 };
+    exhaustLight = std::make_shared<vao_t>();
+	glGenVertexArrays(1, &exhaustLight->vaoId);
+	glBindVertexArray(exhaustLight->vaoId);
+	glGenBuffers(1, &exhaustLight->vboId[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, exhaustLight->vboId[0]);
+	glBufferData(GL_ARRAY_BUFFER, exhaustPos.size() * sizeof(float), &exhaustPos[0], GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+    exhaustLight->numElements = exhaustPos.size();
+    glBindVertexArray(0);
+
+
     // Set up crosshair shape
     crosshairShape = std::make_shared<Shape>();
     std::vector<float> crosshairVerts = { -1.0, -1.0, 0.0, 1.0, -1.0,
@@ -87,9 +100,9 @@ void Arwing::measure() {
     projectileScale = 1;
 }
 
-void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_ptr<Program> crosshairProg,
-                  const std::shared_ptr<MatrixStack> P, const std::shared_ptr<MatrixStack> M,
-                  const glm::mat4& V, const glm::vec3& lightPos)
+void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_ptr<Program> exhaustProg,
+                  const std::shared_ptr<Program> crosshairProg, const std::shared_ptr<MatrixStack> P,
+                  const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos)
 {
     textureProg->bind();
     // Draw Ship
@@ -112,9 +125,29 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
 			glUniform2f(textureProg->getUniform("texOffset"), 0.0, 0.0);
 			(*shape)->draw(textureProg);
         }
+        textureProg->unbind();
+
+        exhaustProg->bind();
+        M->pushMatrix();
+            M->translate(glm::vec3(0, 0, -1.5));
+		    glEnable(GL_BLEND);
+		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    	    glPointSize(200.0);
+		    glUniformMatrix4fv(exhaustProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+		    glUniformMatrix4fv(exhaustProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(V));
+		    glUniformMatrix4fv(exhaustProg->getUniform("M"), 1, GL_FALSE, glm::value_ptr(M->topMatrix()));
+		    glUniform1i(exhaustProg->getUniform("Flicker"), flicker);
+		    glBindVertexArray(exhaustLight->vaoId);
+			glBindBuffer(GL_ARRAY_BUFFER, exhaustLight->vboId[0]);
+			glDrawArrays(GL_POINTS, 0, exhaustLight->numElements);
+		    glBindVertexArray(0);
+		    glDisable(GL_BLEND);
+        M->popMatrix();
+        exhaustProg->unbind();
     M->popMatrix();
 
     // Draw Projctiles
+    textureProg->bind();
     for (auto p = projectiles.begin(); p != projectiles.end();) {
         if ((*p)->travelDistance < 0.0) {
             projectiles.erase(p);
@@ -269,6 +302,8 @@ void Arwing::advance() {
                             -AIRSPACE_WIDTH, AIRSPACE_WIDTH);
     position.y = glm::clamp(position.y + ARWING_MOVE_SPEED*-glm::sin(glm::radians(pitch)),
                             -AIRSPACE_HEIGHT, AIRSPACE_HEIGHT);
+
+    flicker = !flicker;
 }
 
 void Arwing::shoot() {
