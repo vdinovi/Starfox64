@@ -12,6 +12,16 @@
 
 class Program;
 
+// Simple VAO struct with 3 VBO slots, an IBO slot, and count for number of elements
+struct vao_t {
+    unsigned vaoId;
+    unsigned vboId[3];
+    unsigned iboId;
+	unsigned texId;
+    unsigned numElements;
+};
+
+// Simple material object to hold mat properties
 struct Material
 {
 	glm::vec3 ambient;

@@ -115,7 +115,7 @@ private:
     int pitching = NOT_PITCHING;
     int rolling = NOT_ROLLING;
 
-    int state = ARWING_NORMAL;
+    //int state = ARWING_NORMAL;
 
  };
 

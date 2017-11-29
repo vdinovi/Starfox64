@@ -3,8 +3,9 @@
 #include "GLSL.h"
 
 Interface::Interface(unsigned maxHealth)
-    : maxHealth(maxHealth)
+    //: maxHealth(maxHealth)
 {
+    (void) maxHealth;
     std::vector<float> positions = {
         -1.0, -0.5, 0.0,
          0.0, -0.5, 0.0,

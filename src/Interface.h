@@ -27,7 +27,7 @@ private:
     // "hbar" == "health bar"
     std::shared_ptr<vao_t> hbarShape;
 
-    unsigned maxHealth;
+    //unsigned maxHealth;
 
 };
 

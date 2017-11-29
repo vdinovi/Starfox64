@@ -226,7 +226,6 @@ void Arwing::yawLeft(int action) {
     if (action == KEY_RELEASE) {
         yawing = NOT_YAWING;
     }
-
 }
 
 void Arwing::yawRight(int action) {
@@ -302,7 +301,7 @@ void Arwing::advance() {
                             -AIRSPACE_WIDTH, AIRSPACE_WIDTH);
     position.y = glm::clamp(position.y + ARWING_MOVE_SPEED*-glm::sin(glm::radians(pitch)),
                             -AIRSPACE_HEIGHT, AIRSPACE_HEIGHT);
-
+    // Exhaust flicker
     flicker = !flicker;
 }
 
