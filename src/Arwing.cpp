@@ -129,14 +129,14 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
 
         exhaustProg->bind();
         M->pushMatrix();
-            M->translate(glm::vec3(0, 0, -1.5));
+            M->translate(glm::vec3(0, 0.2, -1.2));
 		    glEnable(GL_BLEND);
 		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     	    glPointSize(200.0);
 		    glUniformMatrix4fv(exhaustProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 		    glUniformMatrix4fv(exhaustProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(V));
 		    glUniformMatrix4fv(exhaustProg->getUniform("M"), 1, GL_FALSE, glm::value_ptr(M->topMatrix()));
-		    glUniform1i(exhaustProg->getUniform("Flicker"), flicker);
+		    //glUniform1f(exhaustProg->getUniform("flicker"), exhaustTime);
 		    glBindVertexArray(exhaustLight->vaoId);
 			glBindBuffer(GL_ARRAY_BUFFER, exhaustLight->vboId[0]);
 			glDrawArrays(GL_POINTS, 0, exhaustLight->numElements);
@@ -255,6 +255,13 @@ void Arwing::rollRight(int action) {
     }
 }
 
+void Arwing::barrelRoll() {
+    if (!barrelRollState) {
+        barrelRollState = true;
+        barrelRollAmnt = 360.0;
+    }
+}
+
 void Arwing::advance() {
     switch(yawing) {
     case NOT_YAWING:
@@ -289,11 +296,19 @@ void Arwing::advance() {
                (roll > 0 ? glm::max(roll - 2*ARWING_ROLL_RATE, 0.0) : 0.0);
         break;
     case ROLLING_LEFT:
-        roll = glm::max(roll - 3*ARWING_TURN_RATE, -ARWING_MAX_ROLL);
+        roll = glm::max(roll - 3*ARWING_ROLL_RATE, -ARWING_MAX_ROLL);
         break;
     case ROLLING_RIGHT:
-        roll = glm::min(roll + 3*ARWING_TURN_RATE, ARWING_MAX_ROLL);
+        roll = glm::min(roll + 3*ARWING_ROLL_RATE, ARWING_MAX_ROLL);
         break;
+    }
+
+    if (barrelRollState) {
+        roll = barrelRollAmnt;
+        barrelRollAmnt -= ARWING_BARREL_ROLL_RATE;
+        if (barrelRollAmnt < 0.0) {
+            barrelRollState = false;
+        }
     }
 
 
@@ -301,8 +316,6 @@ void Arwing::advance() {
                             -AIRSPACE_WIDTH, AIRSPACE_WIDTH);
     position.y = glm::clamp(position.y + ARWING_MOVE_SPEED*-glm::sin(glm::radians(pitch)),
                             -AIRSPACE_HEIGHT, AIRSPACE_HEIGHT);
-    // Exhaust flicker
-    flicker = !flicker;
 }
 
 void Arwing::shoot() {

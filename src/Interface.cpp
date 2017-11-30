@@ -57,8 +57,8 @@ void Interface::draw(const std::shared_ptr<Program> colorProg,
     (void)health;
     colorProg->bind();
 	M->pushMatrix();
-        M->translate(glm::vec3(5, 5, ARWING_DEPTH));
-        M->scale(glm::vec3(2, 2, 0));
+        M->translate(glm::vec3(1, 2, ARWING_DEPTH+5));
+        M->scale(glm::vec3(0.5, 0.5, 0));
 		glUniformMatrix4fv(colorProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 		glUniformMatrix4fv(colorProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
 		glUniformMatrix4fv(colorProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));

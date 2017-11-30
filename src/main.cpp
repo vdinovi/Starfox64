@@ -161,7 +161,9 @@ public:
 		if (key == GLFW_KEY_X && action == GLFW_RELEASE) {
 			arwing->rollRight(KEY_RELEASE);
 		}
-
+		if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+			arwing->barrelRoll();
+		}
 	}
 
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
@@ -275,7 +277,7 @@ public:
 		programs["exhaust"]->addUniform("P");
 		programs["exhaust"]->addUniform("V");
 		programs["exhaust"]->addUniform("M");
-		programs["exhaust"]->addUniform("Flicker");
+		//programs["exhaust"]->addUniform("flicker");
 		programs["exhaust"]->addAttribute("vertPos");
 
 		programs["simple_color"] = std::make_shared<Program>();
@@ -326,12 +328,7 @@ public:
 
 
 		P->pushMatrix();
-		if (width > height) {
-			P->perspective(45.f, aspect, 1.f, 100.f);
-		}
-		else {
-			P->perspective(45.f, aspect, 1.f, 100.f);
-		}
+		P->perspective(45.f, aspect, 1.f, 100.f);
 		M->loadIdentity();
 
 		// ENVIRONMENT
@@ -358,18 +355,29 @@ public:
 			enemy->spawnEnemy();
 		}
 
-		// INTERFACE
-		// @TODO not sure how to render it as a fixed overlay
-		//interface->draw(programs["simple_color"], P, M, V, ARWING_MAX_HEALTH);
-
 		// ARWING
 		arwing->draw(programs["texture"], programs["exhaust"], programs["crosshair"], P, M, V, lightPos);
 		arwing->advance();
 
+		P->popMatrix();
 
+		// INTERFACE
+		// @TODO not sure how to render it as a fixed overlay
+		/*
+		P->pushMatrix();
+		if (width > height) {
+			P->ortho(-1*aspect, 1*aspect, -1, 1, -2, 100.0f);
+		} else {
+			P->ortho(-1, 1, -1*1/aspect, 1*1/aspect, -2, 100.0f);
+		}
 
+		M->pushMatrix();
+			//M->translate(glm::vec3(arwing->position.x, arwing->position.y, arwing->position.z));
+			interface->draw(programs["simple_color"], P, M, V, ARWING_MAX_HEALTH);
+		M->popMatrix();
 
 		P->popMatrix();
+		*/
 	}
 
 };

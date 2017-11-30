@@ -28,7 +28,8 @@
 #define ARWING_MAX_ROLL 90.0
 #define ARWING_MOVE_SPEED 0.5
 #define ARWING_TURN_RATE 1.5
-#define ARWING_ROLL_RATE 5
+#define ARWING_ROLL_RATE 2.0
+#define ARWING_BARREL_ROLL_RATE 8.0
 #define ARWING_HIT_RADIUS 2.0
 
 #define ARWING_PROJECTILE_SPEED 0.1
@@ -86,6 +87,7 @@ public:
     void yawRight(int action);
     void rollLeft(int action);
     void rollRight(int action);
+    void barrelRoll();
 
     void shoot();
 
@@ -109,11 +111,15 @@ private:
     float projectileScale;
 
     std::shared_ptr<Shape> crosshairShape;
-    bool flicker = false;
+    //float exhaustTime = 0.0;
 
     int yawing = NOT_YAWING;
     int pitching = NOT_PITCHING;
     int rolling = NOT_ROLLING;
+
+    bool barrelRollState = false;
+    double barrelRollAmnt = 0.0;
+
 
     //int state = ARWING_NORMAL;
 
