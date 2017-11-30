@@ -74,3 +74,9 @@ Place to record development activity/thoughts/resources
 * Added groundwork for the interface
 * Tried rushing through some enemy spline paths, but reverted -- will do soon
 
+
+### 11/30 12:00pm
+* Tried to render interface with ortho perspective, almost working but following camera pitch/yaw is difficult
+* Tried to add flicker effect to exhaust but I think its looks better without. Cleaned up a bit though.
+* Added barrel roll!
+
