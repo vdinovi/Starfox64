@@ -352,8 +352,9 @@ public:
 		}
 		for (auto p = arwing->projectiles.begin(); p != arwing->projectiles.end(); ++p) {
 			// Fix this to return a list of enemy units -- call 'explode' on each unit
-			unsigned collisions = enemy->checkProjectile((*p)->position, ARWING_PROJECTILE_HIT_RADIUS);
-			if (collisions > 0) {
+			std::vector<std::shared_ptr<EnemyUnit>> enemiesHit = enemy->checkProjectile((*p)->position, ARWING_PROJECTILE_HIT_RADIUS);
+			for (auto e = enemiesHit.begin(); e != enemiesHit.end(); ++e) {
+				(*e)->explode();
 				std::cout << "Arwing shot down an enenemy!" << std::endl;
 			}
 		}
@@ -396,6 +397,7 @@ public:
 
 int main(int argc, char **argv)
 {
+
 	std::string shaderDir = "../shaders";
 	std::string resourceDir = "../resources";
 
@@ -411,6 +413,7 @@ int main(int argc, char **argv)
 	application->initGeom(resourceDir);
 	application->initGame();
 
+    srand (static_cast <unsigned> (time(0)));
 	while(! glfwWindowShouldClose(windowManager->getHandle()))
 	{
 		application->render();

@@ -11,7 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #define TEX_SCROLL_RATE 0.003
-#define GROUND_WIDTH 50
+#define GROUND_WIDTH 80
 #define GROUND_DEPTH 40
 
 #define SKY_WIDTH 90

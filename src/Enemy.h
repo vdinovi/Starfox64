@@ -10,12 +10,18 @@
 #include "MatrixStack.h"
 #include <glm/gtc/type_ptr.hpp>
 
+#define PARTICLE_LIFETIME 10
+#define EXPLOSION_NUM_PARTICLES 10
+#define PARTICLE_SCALE 0.2
+#define GRAVITY 0.2
+#define WIND_RESISTANCE 0.1
+
 #define ENEMY_SPAWN_CD 60.0
 
 #define ENEMY_SCALE 3.0
 #define ENEMY_HIT_RADIUS 3.0
-#define MIN_ENEMY_INTERP_SPEED 0.006
-#define MAX_ENEMY_INTERP_SPEED 0.008
+#define MIN_ENEMY_INTERP_SPEED 0.004
+#define MAX_ENEMY_INTERP_SPEED 0.006
 
 #define LEFT_ENEMY_SPAWN_BOUND 60.0
 #define RIGHT_ENEMY_SPAWN_BOUND -60.0
@@ -34,11 +40,7 @@
 #define ENEMY_STATE_DEAD 1
 
 struct Particle {
-    Particle(glm::vec3 pos, glm::vec3 vel)
-        : pos(pos)
-        , vel(vel)
-        , ttl(PARTICLE_LIFETIME)
-    {}
+    Particle(glm::vec3 pos, glm::vec3 vel);
 
     void advance();
 
@@ -49,14 +51,7 @@ struct Particle {
 };
 
 struct EnemyUnit {
-    EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed, double yaw, double pitch)
-        : startPosition(startPos)
-        , endPosition(endPos)
-        , speed(speed)
-        , yaw(yaw)
-        , pitch(pitch)
-        , travelDistance(1)
-    {}
+    EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed, double yaw, double pitch);
 
     glm::vec3 position;
 	glm::vec3 startPosition;
@@ -66,10 +61,15 @@ struct EnemyUnit {
     double pitch;
     double travelDistance;
 
-    int state = ENEMY_STATE_DEAD;
+    int state = ENEMY_STATE_NORMAL;
+
+    std::vector<std::shared_ptr<Particle>> particles;
+    unsigned particleVAO;
+    unsigned pointsVBO;
 
     void advance();
     void explode();
+    void updateParticles();
 };
 
 class Enemy {
@@ -83,7 +83,8 @@ public:
     void spawnEnemy();
 
     unsigned checkCollisions(glm::vec3 position, float radius);
-    unsigned checkProjectile(glm::vec3 position, float radius);
+
+    std::vector<std::shared_ptr<EnemyUnit>> checkProjectile(glm::vec3 position, float radius);
 
     void advance();
 
@@ -95,8 +96,6 @@ private:
     std::vector<std::shared_ptr<Shape>> shapes;
     glm::vec3 trans;
     float scale;
-
-    std::shared_ptr<Shape> explosionShape;
 };
 
 #endif // FINAL_471_ENEMY_H_INCLUDED

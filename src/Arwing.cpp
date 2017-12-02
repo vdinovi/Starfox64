@@ -136,7 +136,6 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
 		    glUniformMatrix4fv(exhaustProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 		    glUniformMatrix4fv(exhaustProg->getUniform("V"), 1, GL_FALSE, glm::value_ptr(V));
 		    glUniformMatrix4fv(exhaustProg->getUniform("M"), 1, GL_FALSE, glm::value_ptr(M->topMatrix()));
-		    //glUniform1f(exhaustProg->getUniform("flicker"), exhaustTime);
 		    glBindVertexArray(exhaustLight->vaoId);
 			glBindBuffer(GL_ARRAY_BUFFER, exhaustLight->vboId[0]);
 			glDrawArrays(GL_POINTS, 0, exhaustLight->numElements);
