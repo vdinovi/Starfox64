@@ -42,6 +42,7 @@ public:
 	// Game
 	clock_t spawnTimer;
 	bool paused = false;
+	unsigned hitCount = 0;
 
 	// Camera
 	bool cameraUnlock = false;
@@ -59,7 +60,6 @@ public:
 	std::shared_ptr<Enemy> enemy;
 	// Interface
 	std::shared_ptr<Interface> interface;
-
 
 	// Light
 	glm::vec3 lightPos = {-10.0, 15.0, 10.0};
@@ -354,8 +354,9 @@ public:
 			// Fix this to return a list of enemy units -- call 'explode' on each unit
 			std::vector<std::shared_ptr<EnemyUnit>> enemiesHit = enemy->checkProjectile((*p)->position, ARWING_PROJECTILE_HIT_RADIUS);
 			for (auto e = enemiesHit.begin(); e != enemiesHit.end(); ++e) {
+				++hitCount;
 				(*e)->explode();
-				std::cout << "Arwing shot down an enenemy!" << std::endl;
+				std::cout << "Enemies hit: " << hitCount << std::endl;
 			}
 		}
 

@@ -152,7 +152,7 @@ void Enemy::spawnEnemy() {
 unsigned Enemy::checkCollisions(glm::vec3 position, float radius) {
     unsigned collisions = 0;
     for (auto e = enemies.begin(); e != enemies.end(); ++e) {
-        if (glm::distance((*e)->position, position) <= radius + ENEMY_HIT_RADIUS) {
+        if ((*e)->state != ENEMY_STATE_DEAD && glm::distance((*e)->position, position) <= radius + ENEMY_HIT_RADIUS) {
             collisions++;
         }
     }
@@ -162,7 +162,7 @@ unsigned Enemy::checkCollisions(glm::vec3 position, float radius) {
 std::vector<std::shared_ptr<EnemyUnit>> Enemy::checkProjectile(glm::vec3 position, float radius) {
     std::vector<std::shared_ptr<EnemyUnit>> enemiesHit;
     for (auto e = enemies.begin(); e != enemies.end(); ++e) {
-        if (glm::distance((*e)->position, position) <= radius + ENEMY_HIT_RADIUS) {
+        if ((*e)->state != ENEMY_STATE_DEAD && glm::distance((*e)->position, position) <= radius + ENEMY_HIT_RADIUS) {
             enemiesHit.push_back(*e);
         }
     }
@@ -187,7 +187,6 @@ EnemyUnit::EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed, double 
 	CHECKED_GL_CALL(glGenVertexArrays(1, &particleVAO));
 	CHECKED_GL_CALL(glBindVertexArray(particleVAO));
 	CHECKED_GL_CALL(glGenBuffers(1, &pointsVBO));
-    CHECKED_GL_CALL(glBufferData(GL_ARRAY_BUFFER, EXPLOSION_NUM_PARTICLES*sizeof(float), NULL, GL_STREAM_DRAW));
     CHECKED_GL_CALL(glBindVertexArray(0));
 }
 
