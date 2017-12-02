@@ -180,7 +180,6 @@ EnemyUnit::EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed)
     // Setup spline
     int numInteriorPoints = 1 + (rand() % 3);
     //int numInteriorPoints = 1;
-    numPositions = 2 + numInteriorPoints; // start, end, 1-2 interior pts
     targetPositions.push_back(startPos);
     // Generate interior points
     float zInterval = (startPos.z - endPos.z)/numInteriorPoints;
@@ -239,10 +238,12 @@ void EnemyUnit::advance() {
     std::cout << "Enemy TD: " << travelDistance << "\n";
     if (state == ENEMY_STATE_NORMAL) {
         if (travelDistance <= 0.0) {
-            ++nextPosition;
-            if (nextPosition >= numPositions) {
+            currentPosition = targetPositions[nextPosition++];
+            if (nextPosition >= targetPositions.size()) {
+                std::cout << "DONE\n";
                 state = ENEMY_STATE_DONE;
             } else {
+                std::cout << "NEW POINT\n";
                 yaw = glm::atan((targetPositions[nextPosition].x - currentPosition.x)/
                     (targetPositions[nextPosition].z - currentPosition.z));
                 pitch = glm::atan((targetPositions[nextPosition].y - currentPosition.y)/
