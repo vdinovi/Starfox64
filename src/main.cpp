@@ -291,6 +291,17 @@ public:
 		programs["simple_color"]->addAttribute("vertPos");
 		programs["simple_color"]->addAttribute("vertCol");
 
+		programs["explosion"] = std::make_shared<Program>();
+		programs["explosion"]->setVerbose(true);
+		programs["explosion"]->setShaderNames(resourceDir + "/explosion_vert_shader.glsl",
+    										  resourceDir + "/explosion_frag_shader.glsl");
+		programs["explosion"]->init();
+		programs["explosion"]->addUniform("P");
+		programs["explosion"]->addUniform("V");
+		programs["explosion"]->addUniform("M");
+		programs["explosion"]->addAttribute("vertPos");
+		programs["explosion"]->addAttribute("vertNor");
+		programs["explosion"]->addAttribute("vertTex");
 	}
 
 	void render()

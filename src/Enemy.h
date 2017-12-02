@@ -30,6 +30,9 @@
 #define UPPER_ENEMY_END_BOUND 1.0
 #define ENEMY_END_Z -5.0
 
+#define ENEMY_STATE_NORMAL 0
+#define ENEMY_STATE_DEAD 1
+
 
 struct EnemyUnit {
     EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed, double yaw, double pitch)
@@ -49,6 +52,8 @@ struct EnemyUnit {
     double pitch;
     double travelDistance;
 
+    int state = ENEMY_STATE_NORMAL;
+
     void advance();
 };
 
@@ -56,8 +61,9 @@ class Enemy {
 public:
     Enemy(std::string resourceDir);
     void measure();
-    void draw(const std::shared_ptr<Program> prog, const std::shared_ptr<MatrixStack> P,
-              const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos);
+    void draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Program> explosionProg,
+              const std::shared_ptr<MatrixStack> P, const std::shared_ptr<MatrixStack> M,
+              const glm::mat4& V, const glm::vec3& lightPos);
 
     void spawnEnemy();
 
@@ -72,6 +78,7 @@ private:
     std::vector<std::shared_ptr<EnemyUnit>> enemies;
 
     std::vector<std::shared_ptr<Shape>> shapes;
+    std::shared_ptr<Shape> explosionShape;
     glm::vec3 trans;
     float scale;
 

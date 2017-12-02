@@ -29,6 +29,18 @@ Enemy::Enemy(std::string resourceDir) {
             }
         }
     }
+
+    bool rc = tinyobj::LoadObj(TOshapes, TOmats, err, (basePath + "sphere.obj").c_str(), basePath.c_str());
+    if (!rc) {
+        std::cerr << err << std::endl;
+    }
+    else {
+        explosionShape = std::make_shared<Shape>();
+        explosionShape->createShape(TOshapes[0]);
+        explosionShape->init();
+        explosionShape->loadTexture(basePath + "crosshair.jpg");
+    }
+
     spawnEnemy();
 }
 
@@ -51,8 +63,9 @@ void Enemy::measure() {
     scale = lScale;
 }
 
-void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<MatrixStack> P,
-                 const std::shared_ptr<MatrixStack> M, const glm::mat4& V, const glm::vec3& lightPos) {
+void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Program> explosionProg,
+                 const std::shared_ptr<MatrixStack> P, const std::shared_ptr<MatrixStack> M,
+                 const glm::mat4& V, const glm::vec3& lightPos) {
     prog->bind();
     for (auto e = enemies.begin(); e != enemies.end();) {
         if ((*e)->travelDistance < 0.0) {
@@ -66,16 +79,23 @@ void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Matr
 		        M->rotate((*e)->pitch, glm::vec3(1, 0, 0));
 		        M->scale(scale);
 		        M->translate(-1.0f*trans);
-                for (auto shape = shapes.begin(); shape != shapes.end(); ++shape) {
-			        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-			        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-			        glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-			        glUniform3f(prog->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
-			        glUniform3f(prog->getUniform("La"), 1, 1, 1);
-			        glUniform3f(prog->getUniform("Ld"), 1, 1, 1);
-			        glUniform3f(prog->getUniform("Ls"), 1, 1, 1);
-			        glUniform2f(prog->getUniform("texOffset"), 0.0, 0.0);
-			        (*shape)->draw(prog);
+                if ((*e)->state == ENEMY_STATE_NORMAL) {
+                    for (auto shape = shapes.begin(); shape != shapes.end(); ++shape) {
+			            glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+			            glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+			            glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+			            glUniform3f(prog->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
+			            glUniform3f(prog->getUniform("La"), 1, 1, 1);
+			            glUniform3f(prog->getUniform("Ld"), 1, 1, 1);
+			            glUniform3f(prog->getUniform("Ls"), 1, 1, 1);
+			            glUniform2f(prog->getUniform("texOffset"), 0.0, 0.0);
+			            (*shape)->draw(prog);
+                    }
+                } else {
+			        glUniformMatrix4fv(explosionProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+			        glUniformMatrix4fv(explosionProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+			        glUniformMatrix4fv(explosionProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+			        explosionShape->draw(explosionProg);
                 }
             M->popMatrix();
             (*e)->advance();
