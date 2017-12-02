@@ -80,3 +80,12 @@ Place to record development activity/thoughts/resources
 * Tried to add flicker effect to exhaust but I think its looks better without. Cleaned up a bit though.
 * Added barrel roll!
 
+### 12/1 11:00pm
+* Added simple explosion effects to enemies when hit (they burst into many brown particles with relatively correct velocities and subject to gravity)
+
+### 12/2 12:00pm
+* Added splines to enemies, can have any number of interior (between start and end) points
+* Wierd bug with splines where they pause for awhile at vertices
+
+## Update
+I'm going to stop updating this doc because my life is now a tornado of misery and despair, its ok tho :). See commit messages for updates.
