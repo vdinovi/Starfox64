@@ -33,11 +33,12 @@
 #define LEFT_ENEMY_END_BOUND -2.0
 #define RIGHT_ENEMY_END_BOUND 2.0
 #define LOWER_ENEMY_END_BOUND -5.0
-#define UPPER_ENEMY_END_BOUND 1.0
-#define ENEMY_END_Z -5.0
+#define UPPER_ENEMY_END_BOUND 2.0
+#define ENEMY_END_Z 0.0
 
 #define ENEMY_STATE_NORMAL 0
 #define ENEMY_STATE_DEAD 1
+#define ENEMY_STATE_DONE 2
 
 struct Particle {
     Particle(glm::vec3 pos, glm::vec3 vel);
@@ -51,17 +52,19 @@ struct Particle {
 };
 
 struct EnemyUnit {
-    EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed, double yaw, double pitch);
+    EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed);
 
-    glm::vec3 position;
-	glm::vec3 startPosition;
-	glm::vec3 endPosition;
+    glm::vec3 currentPosition;
+    std::vector<glm::vec3> targetPositions;
+    unsigned nextPosition;
+    size_t numPositions;
     double speed;
     double yaw;
     double pitch;
     double travelDistance;
 
     int state = ENEMY_STATE_NORMAL;
+
 
     std::vector<std::shared_ptr<Particle>> particles;
     unsigned particleVAO;

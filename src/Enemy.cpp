@@ -60,7 +60,7 @@ void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Prog
                  const std::shared_ptr<MatrixStack> P, const std::shared_ptr<MatrixStack> M,
                  const glm::mat4& V, const glm::vec3& lightPos) {
     for (auto e = enemies.begin(); e != enemies.end();) {
-        if ((*e)->state == ENEMY_STATE_NORMAL && (*e)->travelDistance < 0.0) {
+        if ((*e)->state == ENEMY_STATE_DONE) {
             enemies.erase(e);
         } else if ((*e)->state == ENEMY_STATE_DEAD && (*e)->particles.empty()) {
             enemies.erase(e);
@@ -68,7 +68,7 @@ void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Prog
 	        M->pushMatrix();
                 if ((*e)->state == ENEMY_STATE_NORMAL) {
                     prog->bind();
-		            M->translate(glm::vec3((*e)->position.x, (*e)->position.y, (*e)->position.z));
+		            M->translate(glm::vec3((*e)->currentPosition.x, (*e)->currentPosition.y, (*e)->currentPosition.z));
 		            M->scale(glm::vec3(ENEMY_SCALE/2, ENEMY_SCALE/2, ENEMY_SCALE/2));
                     M->rotate(glm::radians(180.0), glm::vec3(0, 1, 0));
 		            M->rotate((*e)->yaw, glm::vec3(0, 1, 0));
@@ -90,7 +90,7 @@ void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Prog
                 } else if ((*e)->state == ENEMY_STATE_DEAD) {
                     explosionProg->bind();
                     M->pushMatrix();
-		                M->translate(glm::vec3((*e)->position.x, (*e)->position.y, (*e)->position.z));
+		                M->translate(glm::vec3((*e)->currentPosition.x, (*e)->currentPosition.y, (*e)->currentPosition.z));
                         M->scale(glm::vec3(PARTICLE_SCALE, PARTICLE_SCALE, PARTICLE_SCALE));
 			            glUniformMatrix4fv(explosionProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 			            glUniformMatrix4fv(explosionProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
@@ -120,8 +120,11 @@ void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Prog
 }
 
 void Enemy::spawnEnemy() {
-    float speed = MIN_ENEMY_INTERP_SPEED + (MIN_ENEMY_INTERP_SPEED - MAX_ENEMY_INTERP_SPEED)
+    /*float speed = MIN_ENEMY_INTERP_SPEED + (MIN_ENEMY_INTERP_SPEED - MAX_ENEMY_INTERP_SPEED)
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
+                 *
+    */
+    float speed = MIN_ENEMY_INTERP_SPEED;
     float startX = LEFT_ENEMY_SPAWN_BOUND + (RIGHT_ENEMY_SPAWN_BOUND - LEFT_ENEMY_SPAWN_BOUND)
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
     float startY = LOWER_ENEMY_SPAWN_BOUND + (UPPER_ENEMY_SPAWN_BOUND - LOWER_ENEMY_END_BOUND)
@@ -135,15 +138,10 @@ void Enemy::spawnEnemy() {
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
     float endZ = ENEMY_END_Z;
 
-    double yaw = atan((endX-startX)/(endZ-startZ));
-    double pitch = atan((endY-startY)/(endZ-startZ));
-
     enemies.push_back(std::make_shared<EnemyUnit>(
         glm::vec3(startX, startY, startZ),
         glm::vec3(endX, endY, endZ),
-        speed,
-        yaw,
-        pitch
+        speed
     ));
     auto e = enemies.back();
     e->advance();
@@ -152,7 +150,7 @@ void Enemy::spawnEnemy() {
 unsigned Enemy::checkCollisions(glm::vec3 position, float radius) {
     unsigned collisions = 0;
     for (auto e = enemies.begin(); e != enemies.end(); ++e) {
-        if ((*e)->state != ENEMY_STATE_DEAD && glm::distance((*e)->position, position) <= radius + ENEMY_HIT_RADIUS) {
+        if ((*e)->state != ENEMY_STATE_DEAD && glm::distance((*e)->currentPosition, position) <= radius + ENEMY_HIT_RADIUS) {
             collisions++;
         }
     }
@@ -162,7 +160,7 @@ unsigned Enemy::checkCollisions(glm::vec3 position, float radius) {
 std::vector<std::shared_ptr<EnemyUnit>> Enemy::checkProjectile(glm::vec3 position, float radius) {
     std::vector<std::shared_ptr<EnemyUnit>> enemiesHit;
     for (auto e = enemies.begin(); e != enemies.end(); ++e) {
-        if ((*e)->state != ENEMY_STATE_DEAD && glm::distance((*e)->position, position) <= radius + ENEMY_HIT_RADIUS) {
+        if ((*e)->state != ENEMY_STATE_DEAD && glm::distance((*e)->currentPosition, position) <= radius + ENEMY_HIT_RADIUS) {
             enemiesHit.push_back(*e);
         }
     }
@@ -175,14 +173,40 @@ std::vector<std::shared_ptr<EnemyUnit>> Enemy::checkProjectile(glm::vec3 positio
 ///// Enemy Unit /////
 //////////////////////
 
-EnemyUnit::EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed, double yaw, double pitch)
-    : startPosition(startPos)
-    , endPosition(endPos)
+EnemyUnit::EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed)
+    : currentPosition(startPos)
     , speed(speed)
-    , yaw(yaw)
-    , pitch(pitch)
-    , travelDistance(1)
 {
+    // Setup spline
+    int numInteriorPoints = 1 + (rand() % 3);
+    //int numInteriorPoints = 1;
+    numPositions = 2 + numInteriorPoints; // start, end, 1-2 interior pts
+    targetPositions.push_back(startPos);
+    // Generate interior points
+    float zInterval = (startPos.z - endPos.z)/numInteriorPoints;
+    for (int i = 0; i < numInteriorPoints; ++i) {
+        float zOffset = i*zInterval + zInterval*(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
+        float xPos = (LEFT_ENEMY_SPAWN_BOUND+LEFT_ENEMY_END_BOUND)/2 +
+            ((RIGHT_ENEMY_SPAWN_BOUND+RIGHT_ENEMY_END_BOUND)/2 - (LEFT_ENEMY_SPAWN_BOUND+LEFT_ENEMY_END_BOUND)/2)
+            * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
+        float yPos = (LOWER_ENEMY_SPAWN_BOUND+LOWER_ENEMY_END_BOUND)/2 +
+            ((UPPER_ENEMY_SPAWN_BOUND + UPPER_ENEMY_END_BOUND)/2 - (LOWER_ENEMY_SPAWN_BOUND+LOWER_ENEMY_END_BOUND)/2)
+            * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
+        targetPositions.push_back(glm::vec3(
+            xPos, yPos, startPos.z - zOffset
+        ));
+    }
+    targetPositions.push_back(endPos);
+    nextPosition = 1;
+    travelDistance = 1.0;
+    yaw = glm::atan((targetPositions[nextPosition].x - currentPosition.x)/
+        (targetPositions[nextPosition].z - currentPosition.z));
+    pitch = glm::atan((targetPositions[nextPosition].y - currentPosition.y)/
+        (targetPositions[nextPosition].z - currentPosition.z));
+
+
+
+
     // Setup particle data
 	CHECKED_GL_CALL(glGenVertexArrays(1, &particleVAO));
 	CHECKED_GL_CALL(glBindVertexArray(particleVAO));
@@ -207,20 +231,32 @@ void EnemyUnit::updateParticles() {
 void EnemyUnit::explode() {
     state = ENEMY_STATE_DEAD;
     for (int i = 0; i < EXPLOSION_NUM_PARTICLES; ++i) {
-        particles.push_back(std::make_shared<Particle>(position, endPosition-position));
+        particles.push_back(std::make_shared<Particle>(currentPosition, targetPositions[nextPosition]-currentPosition));
     }
 }
 
 void EnemyUnit::advance() {
+    std::cout << "Enemy TD: " << travelDistance << "\n";
     if (state == ENEMY_STATE_NORMAL) {
-        travelDistance -= speed;
-        float xPos = (travelDistance) * startPosition.x + (1-travelDistance) * endPosition.x;
-        float yPos = (travelDistance) * startPosition.y + (1-travelDistance) * endPosition.y;
-        float zPos = (travelDistance) * startPosition.z + (1-travelDistance) * endPosition.z;
-        position = glm::vec3(xPos, yPos, zPos);
-        /*if (position.z < 30) {
-            explode();
-        }*/
+        if (travelDistance <= 0.0) {
+            ++nextPosition;
+            if (nextPosition >= numPositions) {
+                state = ENEMY_STATE_DONE;
+            } else {
+                yaw = glm::atan((targetPositions[nextPosition].x - currentPosition.x)/
+                    (targetPositions[nextPosition].z - currentPosition.z));
+                pitch = glm::atan((targetPositions[nextPosition].y - currentPosition.y)/
+                    (targetPositions[nextPosition].z - currentPosition.z));
+                travelDistance = 1.0;
+            }
+        }
+        if (state != ENEMY_STATE_DONE) {
+            travelDistance -= speed;
+            float xPos = (travelDistance) * currentPosition.x + (1-travelDistance) * targetPositions[nextPosition].x;
+            float yPos = (travelDistance) * currentPosition.y + (1-travelDistance) * targetPositions[nextPosition].y;
+            float zPos = (travelDistance) * currentPosition.z + (1-travelDistance) * targetPositions[nextPosition].z;
+            currentPosition = glm::vec3(xPos, yPos, zPos);
+        }
     } else if (state == ENEMY_STATE_DEAD) {
         for (auto p = particles.begin(); p != particles.end();) {
             if ((*p)->ttl < 0) {

@@ -365,7 +365,7 @@ public:
 		if (t >= ENEMY_SPAWN_CD) {
 			//std::cout << "Time: " << t << std::endl;
 			spawnTimer = clock()/10000.0;
-			enemy->spawnEnemy();
+			//enemy->spawnEnemy();
 		}
 
 		// ARWING
