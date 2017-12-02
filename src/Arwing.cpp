@@ -177,6 +177,8 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
     textureProg->unbind();
 
     // Draw CrossHairs
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     crosshairProg->bind();
 	M->pushMatrix();
 		M->translate(glm::vec3(position.x+50*glm::sin(glm::radians(yaw)), position.y-50*glm::sin(glm::radians(pitch)), 50));
@@ -199,6 +201,7 @@ void Arwing::draw(const std::shared_ptr<Program> textureProg, const std::shared_
 		crosshairShape->draw(crosshairProg);
     M->popMatrix();
     crosshairProg->unbind();
+    glDisable(GL_BLEND);
 }
 
 void Arwing::pitchUp(int action) {

@@ -277,7 +277,6 @@ public:
 		programs["exhaust"]->addUniform("P");
 		programs["exhaust"]->addUniform("V");
 		programs["exhaust"]->addUniform("M");
-		//programs["exhaust"]->addUniform("flicker");
 		programs["exhaust"]->addAttribute("vertPos");
 
 		programs["simple_color"] = std::make_shared<Program>();
@@ -347,11 +346,12 @@ public:
 		environment->advance();
 
 		// ENEMIES
-		enemy->draw(programs["texture"], P, M, V, lightPos);
+		enemy->draw(programs["texture"], programs["explosion"], P, M, V, lightPos);
 		if (enemy->checkCollisions(arwing->position, ARWING_HIT_RADIUS)) {
 			std::cout << "Arwing collided with an enenemy!" << std::endl;
 		}
 		for (auto p = arwing->projectiles.begin(); p != arwing->projectiles.end(); ++p) {
+			// Fix this to return a list of enemy units -- call 'explode' on each unit
 			unsigned collisions = enemy->checkProjectile((*p)->position, ARWING_PROJECTILE_HIT_RADIUS);
 			if (collisions > 0) {
 				std::cout << "Arwing shot down an enenemy!" << std::endl;

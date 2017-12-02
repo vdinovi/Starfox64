@@ -33,6 +33,20 @@
 #define ENEMY_STATE_NORMAL 0
 #define ENEMY_STATE_DEAD 1
 
+struct Particle {
+    Particle(glm::vec3 pos, glm::vec3 vel)
+        : pos(pos)
+        , vel(vel)
+        , ttl(PARTICLE_LIFETIME)
+    {}
+
+    void advance();
+
+    glm::vec3 pos;
+    glm::vec3 vel;
+
+    double ttl;
+};
 
 struct EnemyUnit {
     EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed, double yaw, double pitch)
@@ -52,9 +66,10 @@ struct EnemyUnit {
     double pitch;
     double travelDistance;
 
-    int state = ENEMY_STATE_NORMAL;
+    int state = ENEMY_STATE_DEAD;
 
     void advance();
+    void explode();
 };
 
 class Enemy {
@@ -78,10 +93,10 @@ private:
     std::vector<std::shared_ptr<EnemyUnit>> enemies;
 
     std::vector<std::shared_ptr<Shape>> shapes;
-    std::shared_ptr<Shape> explosionShape;
     glm::vec3 trans;
     float scale;
 
+    std::shared_ptr<Shape> explosionShape;
 };
 
 #endif // FINAL_471_ENEMY_H_INCLUDED
