@@ -25,7 +25,8 @@
 #define CAMERA_MOVE_SPEED 0.75
 #define CAMERA_ORIGIN_Y 0.0
 #define CAMERA_ORIGIN_Z 0.0
-#define CAMERA_FOLLOW 0.75
+#define CAMERA_FOLLOW_X 0.75
+#define CAMERA_FOLLOW_Y 1.2
 
 #define PI 3.14159
 
@@ -146,7 +147,7 @@ public:
 		if (key == GLFW_KEY_DOWN && action == GLFW_RELEASE) {
 			arwing->pitchUp(KEY_RELEASE);
 		}
-		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
 			arwing->shoot();
 		}
 		if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
@@ -299,8 +300,8 @@ public:
 		programs["explosion"]->addUniform("V");
 		programs["explosion"]->addUniform("M");
 		programs["explosion"]->addAttribute("vertPos");
-		programs["explosion"]->addAttribute("vertNor");
-		programs["explosion"]->addAttribute("vertTex");
+		//programs["explosion"]->addAttribute("vertNor");
+		//programs["explosion"]->addAttribute("vertTex");
 	}
 
 	void render()
@@ -329,8 +330,8 @@ public:
 		else {
 			glm::vec3 newCameraPos = cameraPos + glm::vec3(0.5*arwing->position.x, 0.5*arwing->position.y, 0);
 			glm::vec3 newCameraLook = glm::vec3(
-				CAMERA_FOLLOW*cos(glm::radians(arwing->yaw-90.0)),
-				CAMERA_FOLLOW*cos(glm::radians(arwing->pitch)),
+				CAMERA_FOLLOW_X*cos(glm::radians(arwing->yaw-90.0)),
+				CAMERA_FOLLOW_Y*cos(glm::radians(arwing->pitch)),
 				arwing->position.z
 			);
 			V = glm::lookAt(newCameraPos, newCameraPos + newCameraLook, glm::vec3(0, 1, 0));
@@ -351,7 +352,6 @@ public:
 			std::cout << "Arwing collided with an enenemy!" << std::endl;
 		}
 		for (auto p = arwing->projectiles.begin(); p != arwing->projectiles.end(); ++p) {
-			// Fix this to return a list of enemy units -- call 'explode' on each unit
 			std::vector<std::shared_ptr<EnemyUnit>> enemiesHit = enemy->checkProjectile((*p)->position, ARWING_PROJECTILE_HIT_RADIUS);
 			for (auto e = enemiesHit.begin(); e != enemiesHit.end(); ++e) {
 				++hitCount;
@@ -359,13 +359,14 @@ public:
 				std::cout << "Enemies hit: " << hitCount << std::endl;
 			}
 		}
+		enemy->advance();
 
 		// SPAWN ENEMY
 		float t = clock()/10000.0 - spawnTimer;
 		if (t >= ENEMY_SPAWN_CD) {
 			//std::cout << "Time: " << t << std::endl;
 			spawnTimer = clock()/10000.0;
-			//enemy->spawnEnemy();
+			enemy->spawnEnemy();
 		}
 
 		// ARWING
@@ -375,7 +376,7 @@ public:
 		P->popMatrix();
 
 		// INTERFACE
-		// @TODO not sure how to render it as a fixed overlay
+		// @TODO :P
 		/*
 		P->pushMatrix();
 		if (width > height) {

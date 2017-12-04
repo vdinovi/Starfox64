@@ -56,75 +56,78 @@ void Enemy::measure() {
     scale = lScale;
 }
 
-void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Program> explosionProg,
-                 const std::shared_ptr<MatrixStack> P, const std::shared_ptr<MatrixStack> M,
-                 const glm::mat4& V, const glm::vec3& lightPos) {
+void Enemy::advance() {
     for (auto e = enemies.begin(); e != enemies.end();) {
         if ((*e)->state == ENEMY_STATE_DONE) {
             enemies.erase(e);
         } else if ((*e)->state == ENEMY_STATE_DEAD && (*e)->particles.empty()) {
             enemies.erase(e);
         }  else {
-	        M->pushMatrix();
-                if ((*e)->state == ENEMY_STATE_NORMAL) {
-                    prog->bind();
-		            M->translate(glm::vec3((*e)->currentPosition.x, (*e)->currentPosition.y, (*e)->currentPosition.z));
-		            M->scale(glm::vec3(ENEMY_SCALE/2, ENEMY_SCALE/2, ENEMY_SCALE/2));
-                    M->rotate(glm::radians(180.0), glm::vec3(0, 1, 0));
-		            M->rotate((*e)->yaw, glm::vec3(0, 1, 0));
-		            M->rotate((*e)->pitch, glm::vec3(1, 0, 0));
-		            M->scale(scale);
-		            M->translate(-1.0f*trans);
-                    for (auto shape = shapes.begin(); shape != shapes.end(); ++shape) {
-			            glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-			            glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-			            glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-			            glUniform3f(prog->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
-			            glUniform3f(prog->getUniform("La"), 1, 1, 1);
-			            glUniform3f(prog->getUniform("Ld"), 1, 1, 1);
-			            glUniform3f(prog->getUniform("Ls"), 1, 1, 1);
-			            glUniform2f(prog->getUniform("texOffset"), 0.0, 0.0);
-			            (*shape)->draw(prog);
-                    }
-                    prog->unbind();
-                } else if ((*e)->state == ENEMY_STATE_DEAD) {
-                    explosionProg->bind();
-                    M->pushMatrix();
-		                M->translate(glm::vec3((*e)->currentPosition.x, (*e)->currentPosition.y, (*e)->currentPosition.z));
-                        M->scale(glm::vec3(PARTICLE_SCALE, PARTICLE_SCALE, PARTICLE_SCALE));
-			            glUniformMatrix4fv(explosionProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-			            glUniformMatrix4fv(explosionProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-			            glUniformMatrix4fv(explosionProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
-                        (*e)->updateParticles();
-                        CHECKED_GL_CALL(glBindVertexArray((*e)->particleVAO));
-		                CHECKED_GL_CALL(glEnable(GL_BLEND));
-		                CHECKED_GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-       	                CHECKED_GL_CALL(glPointSize(50.0));
-                        CHECKED_GL_CALL(glEnableVertexAttribArray(0));
-				        CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, (*e)->pointsVBO));
-				        CHECKED_GL_CALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0));
-                        CHECKED_GL_CALL(glVertexAttribDivisor(0, 1));
-                        CHECKED_GL_CALL(glDrawArraysInstanced(GL_POINTS, 0, 1, (*e)->particles.size()));
-                        CHECKED_GL_CALL(glVertexAttribDivisor(0, 0));
-				        CHECKED_GL_CALL(glDisableVertexAttribArray(0));
-		                CHECKED_GL_CALL(glBindVertexArray(0));
-		                CHECKED_GL_CALL(glDisable(GL_BLEND));
-                    M->popMatrix();
-                    explosionProg->unbind();
-                }
-            M->popMatrix();
+            (*e)->updateParticles();
             (*e)->advance();
-            e++;
+            ++e;
         }
     }
 }
 
+void Enemy::draw(const std::shared_ptr<Program> prog, const std::shared_ptr<Program> explosionProg,
+                 const std::shared_ptr<MatrixStack> P, const std::shared_ptr<MatrixStack> M,
+                 const glm::mat4& V, const glm::vec3& lightPos)
+{
+    for (auto e = enemies.begin(); e != enemies.end(); ++e) {
+	    M->pushMatrix();
+            if ((*e)->state == ENEMY_STATE_NORMAL) {
+                prog->bind();
+		        M->translate(glm::vec3((*e)->currentPosition.x, (*e)->currentPosition.y, (*e)->currentPosition.z));
+		        M->scale(glm::vec3(ENEMY_SCALE/2, ENEMY_SCALE/2, ENEMY_SCALE/2));
+                M->rotate(glm::radians(180.0), glm::vec3(0, 1, 0));
+		        M->rotate((*e)->yaw, glm::vec3(0, 1, 0));
+		        M->rotate((*e)->pitch, glm::vec3(1, 0, 0));
+		        M->scale(scale);
+		        M->translate(-1.0f*trans);
+                for (auto shape = shapes.begin(); shape != shapes.end(); ++shape) {
+			        glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+			        glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+			        glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+			        glUniform3f(prog->getUniform("lightPosition"), lightPos.x, lightPos.y, lightPos.z);
+			        glUniform3f(prog->getUniform("La"), 1, 1, 1);
+			        glUniform3f(prog->getUniform("Ld"), 1, 1, 1);
+			        glUniform3f(prog->getUniform("Ls"), 1, 1, 1);
+			        glUniform2f(prog->getUniform("texOffset"), 0.0, 0.0);
+			        (*shape)->draw(prog);
+                }
+                prog->unbind();
+            } else if ((*e)->state == ENEMY_STATE_DEAD) {
+                explosionProg->bind();
+                M->pushMatrix();
+		            M->translate(glm::vec3((*e)->currentPosition.x, (*e)->currentPosition.y, (*e)->currentPosition.z));
+                    M->scale(glm::vec3(PARTICLE_SCALE, PARTICLE_SCALE, PARTICLE_SCALE));
+			        glUniformMatrix4fv(explosionProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+			        glUniformMatrix4fv(explosionProg->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+			        glUniformMatrix4fv(explosionProg->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+                    CHECKED_GL_CALL(glBindVertexArray((*e)->particleVAO));
+		            CHECKED_GL_CALL(glEnable(GL_BLEND));
+		            CHECKED_GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+       	            CHECKED_GL_CALL(glPointSize(50.0));
+                    CHECKED_GL_CALL(glEnableVertexAttribArray(0));
+                    CHECKED_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, (*e)->pointsVBO));
+                    CHECKED_GL_CALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0));
+                    CHECKED_GL_CALL(glVertexAttribDivisor(0, 1));
+                    CHECKED_GL_CALL(glDrawArraysInstanced(GL_POINTS, 0, 1, (*e)->particles.size()));
+                    CHECKED_GL_CALL(glVertexAttribDivisor(0, 0));
+                    CHECKED_GL_CALL(glDisableVertexAttribArray(0));
+		            CHECKED_GL_CALL(glBindVertexArray(0));
+		            CHECKED_GL_CALL(glDisable(GL_BLEND));
+                M->popMatrix();
+                explosionProg->unbind();
+            }
+        M->popMatrix();
+    }
+}
+
 void Enemy::spawnEnemy() {
-    /*float speed = MIN_ENEMY_INTERP_SPEED + (MIN_ENEMY_INTERP_SPEED - MAX_ENEMY_INTERP_SPEED)
+    float speed = MIN_ENEMY_INTERP_SPEED + (MIN_ENEMY_INTERP_SPEED - MAX_ENEMY_INTERP_SPEED)
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
-                 *
-    */
-    float speed = MIN_ENEMY_INTERP_SPEED;
     float startX = LEFT_ENEMY_SPAWN_BOUND + (RIGHT_ENEMY_SPAWN_BOUND - LEFT_ENEMY_SPAWN_BOUND)
                  * (static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
     float startY = LOWER_ENEMY_SPAWN_BOUND + (UPPER_ENEMY_SPAWN_BOUND - LOWER_ENEMY_END_BOUND)
@@ -144,7 +147,6 @@ void Enemy::spawnEnemy() {
         speed
     ));
     auto e = enemies.back();
-    e->advance();
 }
 
 unsigned Enemy::checkCollisions(glm::vec3 position, float radius) {
@@ -174,8 +176,6 @@ std::vector<std::shared_ptr<EnemyUnit>> Enemy::checkProjectile(glm::vec3 positio
 //////////////////////
 
 EnemyUnit::EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed)
-    : currentPosition(startPos)
-    , speed(speed)
 {
     // Setup spline
     int numInteriorPoints = 1 + (rand() % 3);
@@ -197,14 +197,13 @@ EnemyUnit::EnemyUnit(glm::vec3 startPos, glm::vec3 endPos, double speed)
     }
     targetPositions.push_back(endPos);
     nextPosition = 1;
-    travelDistance = 1.0;
+    travelDistance = 0.0;
+    this->speed = speed;
+    currentPosition = targetPositions[0];
     yaw = glm::atan((targetPositions[nextPosition].x - currentPosition.x)/
         (targetPositions[nextPosition].z - currentPosition.z));
     pitch = glm::atan((targetPositions[nextPosition].y - currentPosition.y)/
         (targetPositions[nextPosition].z - currentPosition.z));
-
-
-
 
     // Setup particle data
 	CHECKED_GL_CALL(glGenVertexArrays(1, &particleVAO));
@@ -235,28 +234,30 @@ void EnemyUnit::explode() {
 }
 
 void EnemyUnit::advance() {
-    std::cout << "Enemy TD: " << travelDistance << "\n";
     if (state == ENEMY_STATE_NORMAL) {
-        if (travelDistance <= 0.0) {
+        if (travelDistance >= 1.0) {
             currentPosition = targetPositions[nextPosition++];
-            if (nextPosition >= targetPositions.size()) {
-                std::cout << "DONE\n";
+            if (nextPosition == targetPositions.size()) {
                 state = ENEMY_STATE_DONE;
             } else {
-                std::cout << "NEW POINT\n";
                 yaw = glm::atan((targetPositions[nextPosition].x - currentPosition.x)/
-                    (targetPositions[nextPosition].z - currentPosition.z));
+                                  (targetPositions[nextPosition].z - currentPosition.z));
                 pitch = glm::atan((targetPositions[nextPosition].y - currentPosition.y)/
-                    (targetPositions[nextPosition].z - currentPosition.z));
-                travelDistance = 1.0;
+                                  (targetPositions[nextPosition].z - currentPosition.z));
+                travelDistance = 0.0;
             }
         }
         if (state != ENEMY_STATE_DONE) {
-            travelDistance -= speed;
-            float xPos = (travelDistance) * currentPosition.x + (1-travelDistance) * targetPositions[nextPosition].x;
-            float yPos = (travelDistance) * currentPosition.y + (1-travelDistance) * targetPositions[nextPosition].y;
-            float zPos = (travelDistance) * currentPosition.z + (1-travelDistance) * targetPositions[nextPosition].z;
+            travelDistance += speed;
+            float xPos = (1.0-travelDistance) * targetPositions[nextPosition-1].x + (travelDistance) * (targetPositions[nextPosition].x);
+            float yPos = (1.0-travelDistance) * targetPositions[nextPosition-1].y + (travelDistance) * (targetPositions[nextPosition].y);
+            float zPos = (1.0-travelDistance) * targetPositions[nextPosition-1].z + (travelDistance) * (targetPositions[nextPosition].z);
             currentPosition = glm::vec3(xPos, yPos, zPos);
+            /*yaw = glm::atan((targetPositions[nextPosition].x - currentPosition.x)/
+                            (targetPositions[nextPosition].z - currentPosition.z));
+            pitch = glm::atan((targetPositions[nextPosition].y - currentPosition.y)/
+                              (targetPositions[nextPosition].z - currentPosition.z));*/
+
         }
     } else if (state == ENEMY_STATE_DEAD) {
         for (auto p = particles.begin(); p != particles.end();) {
@@ -283,14 +284,12 @@ Particle::Particle(glm::vec3 position, glm::vec3 velocity)
     vel.x *= MAX_ENEMY_INTERP_SPEED;
     vel.y *= MAX_ENEMY_INTERP_SPEED;
     vel.z *= MAX_ENEMY_INTERP_SPEED;
-    pos.x += 10*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
-    pos.y += 10*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
-    pos.z += 10*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
-    vel.x += 10*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
-    vel.y += 10*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
-    vel.z += 10*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
-    //std::cout << "Particle: (" << pos.x << ", " << pos.y << ", " << pos.z << ") ";
-    //std::cout << ",  (" << vel.x << ", " << vel.y << ", " << vel.z << ") " << std::endl;;
+    pos.x += 5*(1+2*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX)));
+    pos.y += 5*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
+    pos.z += 5*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
+    vel.x += 5*(-1+2*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX)));
+    vel.y += 5*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
+    vel.z += 5*(static_cast<float>(rand()) / static_cast <float> (RAND_MAX));
 }
 
 void Particle::advance() {
