@@ -300,8 +300,6 @@ public:
 		programs["explosion"]->addUniform("V");
 		programs["explosion"]->addUniform("M");
 		programs["explosion"]->addAttribute("vertPos");
-		//programs["explosion"]->addAttribute("vertNor");
-		//programs["explosion"]->addAttribute("vertTex");
 	}
 
 	void render()
@@ -364,7 +362,6 @@ public:
 		// SPAWN ENEMY
 		float t = clock()/10000.0 - spawnTimer;
 		if (t >= ENEMY_SPAWN_CD) {
-			//std::cout << "Time: " << t << std::endl;
 			spawnTimer = clock()/10000.0;
 			enemy->spawnEnemy();
 		}
