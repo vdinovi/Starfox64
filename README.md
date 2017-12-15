@@ -1,8 +1,9 @@
+## Update
+The course is over and my website-demo is being hosted here: https://www.calpoly.edu/~vdinovi/
+
+
 ## CPE 471 - Final Project Proposal - *Starfox 64*
 Vittorio Dinovi - vdinovi@calpoly.edu
-
-## Update
-The course is complete and a website demo is being hosted here: https://www.calpoly.edu/~vdinovi/
 
 > My final project will be a simplified rendition of the original level from *Starfox 64*.
 
