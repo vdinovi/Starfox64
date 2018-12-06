@@ -1,6 +1,5 @@
 ## Update
-The course is over and my website-demo is being hosted here: http://users.csc.calpoly.edu/~idunn01/teaching/csc471/finalf17/
-
+The course is over and my website-demo is being hosted here: http://users.csc.calpoly.edu/~idunn01/teaching/csc471/finalf17/students/vdinovi/
 
 ## CPE 471 - Final Project Proposal - *Starfox 64*
 Vittorio Dinovi - vdinovi@calpoly.edu
